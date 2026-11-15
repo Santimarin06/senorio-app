@@ -4,7 +4,7 @@ import { filtrarPorTexto, normalizar } from '@/lib/busqueda';
 import { limitarCantidad } from '@/lib/cantidad';
 import { formatoCOP } from '@/lib/dinero';
 import { esUuid } from '@/lib/ids';
-import { calcularTotalCita, faltaServicioPrincipal } from '@/lib/reserva';
+import { faltaServicioPrincipal, totalSeleccion } from '@/lib/reserva';
 import type { Servicio } from '@/types/entidades';
 
 const servicio = (parcial: Partial<Servicio>): Servicio => ({
@@ -39,22 +39,19 @@ describe('limitarCantidad (1 a 10)', () => {
   });
 });
 
-describe('calcularTotalCita', () => {
+describe('totalSeleccion', () => {
   it('suma duración y precio de servicios y adicionales', () => {
-    const total = calcularTotalCita([
+    const total = totalSeleccion([
       servicio({ duracionMin: 40, precio: 25000 }),
       servicio({ duracionMin: 0, precio: 15000, esAdicional: true }),
     ]);
-    expect(total).toEqual({ duracionMin: 40, precio: 40000 });
+    expect(total).toEqual({ duracionMin: 40, total: 40000 });
   });
   it('sin servicios es cero', () => {
-    expect(calcularTotalCita([])).toEqual({ duracionMin: 0, precio: 0 });
+    expect(totalSeleccion([])).toEqual({ duracionMin: 0, total: 0 });
   });
-  it('ignora valores negativos', () => {
-    expect(calcularTotalCita([servicio({ duracionMin: -5, precio: -100 })])).toEqual({
-      duracionMin: 0,
-      precio: 0,
-    });
+  it('rechaza valores negativos (calcularTotalCita de src/lib/finanzas.ts)', () => {
+    expect(() => totalSeleccion([servicio({ duracionMin: -5, precio: -100 })])).toThrow(RangeError);
   });
 });
 

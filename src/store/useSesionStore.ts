@@ -1,19 +1,28 @@
-// Sesión compartida entre pantallas (Zustand, como los stores del proyecto Mapas).
-// Es temporal: vive en memoria y se pierde al cerrar la app. RF-01 la reemplaza por Supabase Auth.
+// Sesión compartida entre pantallas (Zustand). La fuente es Supabase Auth; aquí solo vive lo
+// que las pantallas necesitan leer. Se guarda en el teléfono con almacenamientoSesion.ts.
 import { create } from 'zustand';
 
-import type { Rol, Usuario } from '@/types/sesion';
+import type { Rol, Tokens, Usuario } from '@/types/sesion';
 
 export type { Rol, Usuario };
 
 interface SesionState {
   usuario: Usuario | null;
-  iniciarSesion: (usuario: Usuario) => void;
-  cerrarSesion: () => void;
+  tokens: Tokens | null;
+  /** false mientras se lee la sesión guardada al abrir la app. */
+  restaurada: boolean;
+  establecer: (usuario: Usuario, tokens: Tokens) => void;
+  actualizarTokens: (tokens: Tokens) => void;
+  limpiar: () => void;
+  marcarRestaurada: () => void;
 }
 
 export const useSesionStore = create<SesionState>()((set) => ({
   usuario: null,
-  iniciarSesion: (usuario) => set({ usuario }),
-  cerrarSesion: () => set({ usuario: null }),
+  tokens: null,
+  restaurada: false,
+  establecer: (usuario, tokens) => set({ usuario, tokens }),
+  actualizarTokens: (tokens) => set({ tokens }),
+  limpiar: () => set({ usuario: null, tokens: null }),
+  marcarRestaurada: () => set({ restaurada: true }),
 }));

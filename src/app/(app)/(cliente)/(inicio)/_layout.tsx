@@ -11,7 +11,11 @@ export default function InicioStackLayout() {
       <Stack.Screen name="reservar/[profesionalId]" options={{ title: 'Servicios' }} />
       <Stack.Screen name="reservar/horario" options={{ title: 'Un espacio para ti' }} />
       <Stack.Screen name="reservar/resumen" options={{ title: 'Todo en su lugar' }} />
-      <Stack.Screen name="reservar/confirmacion" options={{ title: 'Cita registrada' }} />
+      {/* La cita ya está guardada: no se vuelve al resumen con la flecha. */}
+      <Stack.Screen
+        name="reservar/confirmacion"
+        options={{ title: 'Cita registrada', headerLeft: () => null, gestureEnabled: false }}
+      />
     </Stack>
   );
 }

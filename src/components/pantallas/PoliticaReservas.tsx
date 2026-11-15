@@ -4,7 +4,8 @@ import { ScrollView, Text } from 'react-native';
 import { NEGOCIO } from '@/config/negocio';
 import { formatoCOP } from '@/lib/dinero';
 
-const puntos = [
+/** Puntos de la política (RN-13). Se muestran aquí y antes de confirmar una reserva (RF-06). */
+export const PUNTOS_POLITICA = [
   `Tolerancia de llegada: ${NEGOCIO.toleranciaMinutos} minutos. Después, la cita queda como no asistida.`,
   `No asistir o cancelar con menos de ${NEGOCIO.horasMinimasCancelarSinMulta} horas genera una multa de ${formatoCOP(NEGOCIO.multa)}, que se descuenta del anticipo.`,
   'Si no hay anticipo, la multa pendiente bloquea nuevas reservas hasta pagarla.',
@@ -17,7 +18,7 @@ const puntos = [
 export default function PoliticaReservas() {
   return (
     <ScrollView className="flex-1 bg-fondo" contentContainerStyle={{ padding: 24 }}>
-      {puntos.map((punto) => (
+      {PUNTOS_POLITICA.map((punto) => (
         <Text key={punto} className="mb-4 font-texto text-base text-primary">
           • {punto}
         </Text>

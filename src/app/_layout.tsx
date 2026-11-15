@@ -9,7 +9,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { restaurarSesion } from '@/services/sesion';
+import { useSesionStore } from '@/store/useSesionStore';
+
 SplashScreen.preventAutoHideAsync();
+
+// La sesión guardada se lee una sola vez al abrir la app (RF-01): así la persona sigue dentro
+// después de cerrar y volver a abrir.
+void restaurarSesion();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,12 +33,16 @@ export default function RootLayout() {
     Oswald: require('../../assets/fonts/Oswald-VariableFont_wght.ttf'),
   });
 
+  const sesionRestaurada = useSesionStore((s) => s.restaurada);
+  const fuentesResueltas = fuentesListas || Boolean(errorFuentes);
+
   useEffect(() => {
     // Si una fuente falla se sigue con la del sistema en vez de dejar la app trabada.
-    if (fuentesListas || errorFuentes) SplashScreen.hideAsync();
-  }, [fuentesListas, errorFuentes]);
+    if (fuentesResueltas && sesionRestaurada) SplashScreen.hideAsync();
+  }, [fuentesResueltas, sesionRestaurada]);
 
-  if (!fuentesListas && !errorFuentes) return null;
+  // El splash sigue visible hasta saber si hay sesión: así no parpadea el inicio de sesión.
+  if (!fuentesResueltas || !sesionRestaurada) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -2,7 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { entradaActiva, entradasDrawer, puedeEntrar, rutaInicial } from '@/lib/navegacion';
-import { mapCita } from '@/models/cita.mapper';
+import { mapCita, separarCitas } from '@/models/cita.mapper';
+import type { Cita } from '@/types/entidades';
 
 describe('navegación por rol', () => {
   it('cada rol llega a su primera tab', () => {
@@ -67,6 +68,8 @@ describe('mapCita', () => {
       estado: 'confirmada',
       total: 25000,
       profesional: 'Mario',
+      servicios: [],
+      anticipoAprobado: 0,
     });
   });
 
@@ -74,5 +77,49 @@ describe('mapCita', () => {
     const cita = mapCita({ ...base, estado: 'otro', profesionales: null });
     expect(cita.estado).toBe('por_marcar');
     expect(cita.profesional).toBe('Profesional');
+  });
+
+  it('trae los servicios y solo suma los anticipos aprobados (RN-09)', () => {
+    const cita = mapCita({
+      ...base,
+      cita_servicios: [{ nombre: 'Corte', precio: 25000, duracion_min: 40 }],
+      comprobantes: [
+        { monto: 10000, estado: 'aprobado' },
+        { monto: 15000, estado: 'pendiente' },
+        { monto: 5000, estado: 'rechazado' },
+      ],
+    });
+    expect(cita.servicios).toEqual([{ nombre: 'Corte', precio: 25000, duracionMin: 40 }]);
+    expect(cita.anticipoAprobado).toBe(10000);
+  });
+});
+
+describe('separarCitas (RF-08)', () => {
+  const cita = (id: string, inicio: string, estado: Cita['estado']): Cita => ({
+    id,
+    inicio,
+    fin: new Date(Date.parse(inicio) + 40 * 60_000).toISOString(),
+    estado,
+    total: 25000,
+    profesional: 'Mario',
+    servicios: [],
+    anticipoAprobado: 0,
+  });
+  const ahora = Date.parse('2026-11-17T15:00:00Z');
+
+  it('próximas en orden de llegada; pasadas y canceladas de la más reciente a la más antigua', () => {
+    const { proximas, pasadas } = separarCitas(
+      [
+        cita('futura-lejana', '2026-11-20T15:00:00Z', 'confirmada'),
+        cita('futura-cercana', '2026-11-18T15:00:00Z', 'confirmada'),
+        cita('en-curso', '2026-11-17T14:45:00Z', 'confirmada'),
+        cita('cancelada', '2026-11-19T15:00:00Z', 'cancelada_a_tiempo'),
+        cita('vieja', '2026-11-10T15:00:00Z', 'asistida'),
+        cita('ayer', '2026-11-16T15:00:00Z', 'no_asistida'),
+      ],
+      ahora,
+    );
+    expect(proximas.map((c) => c.id)).toEqual(['en-curso', 'futura-cercana', 'futura-lejana']);
+    expect(pasadas.map((c) => c.id)).toEqual(['cancelada', 'ayer', 'vieja']);
   });
 });

@@ -14,7 +14,7 @@ import { useDisponibilidadSemanal } from '@/hooks/useDisponibilidadSemanal';
 import { aBogota, instanteDeFranja, lunesDe, sumarDias, type DiaDisponibilidad } from '@/lib/disponibilidad';
 import { mensajeDeError } from '@/lib/errores';
 import { etiquetaDia, formatoHora } from '@/lib/fechas';
-import { calcularTotalCita, faltaServicioPrincipal } from '@/lib/reserva';
+import { faltaServicioPrincipal, totalSeleccion } from '@/lib/reserva';
 import { useReservaStore } from '@/store/useReservaStore';
 
 interface Seleccion {
@@ -62,7 +62,7 @@ export default function HorarioScreen() {
     fechaElegida && dias.some((d) => d.fecha === fechaElegida) ? fechaElegida : diaInicial(dias);
   const dia = dias.find((d) => d.fecha === fechaVisible);
   const semanaSinFranjas = dias.length > 0 && !dias.some((d) => d.franjas.some((f) => f.estado === 'libre'));
-  const total = calcularTotalCita(servicios);
+  const total = totalSeleccion(servicios);
   // Si al refrescar la franja elegida dejó de estar libre (otro cliente la tomó), no se puede seguir.
   const seleccionLibre =
     seleccion !== null &&

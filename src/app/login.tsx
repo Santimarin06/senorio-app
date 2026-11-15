@@ -1,58 +1,97 @@
+// Inicio de sesión (RF-01) con Supabase Auth. "Olvidé mi contraseña" no se muestra (D-14).
 import { Link, Redirect, router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Boton from '@/components/Boton';
-import { ETIQUETA_ROL, USUARIOS_DEMO } from '@/config/demo';
+import CampoTexto from '@/components/CampoTexto';
 import { NEGOCIO } from '@/config/negocio';
+import { mensajeDeAuth } from '@/lib/errores';
 import { rutaInicial } from '@/lib/navegacion';
+import { hayErrores, validarInicioSesion, type ErroresFormulario } from '@/lib/sesion';
+import { entrar } from '@/services/sesion';
 import { useSesionStore } from '@/store/useSesionStore';
-import type { Rol } from '@/types/sesion';
 
-const ROLES: Rol[] = ['cliente', 'profesional', 'administrador'];
+type Campos = { correo: string; contrasena: string };
 
-// RF-01 todavía no está construido: esta pantalla entra en modo demostración con el rol
-// elegido y lo dice en pantalla (D-19, D-20). No se presenta como un inicio de sesión real.
 export default function LoginScreen() {
   const usuario = useSesionStore((s) => s.usuario);
-  const iniciarSesion = useSesionStore((s) => s.iniciarSesion);
+  const [datos, setDatos] = useState<Campos>({ correo: '', contrasena: '' });
+  const [errores, setErrores] = useState<ErroresFormulario<Campos>>({});
+  const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
-  // Con sesión abierta no tiene sentido volver a esta pantalla.
+  // Con sesión abierta (por ejemplo, al volver a abrir la app) se va directo a su sección.
   if (usuario) return <Redirect href={rutaInicial(usuario.rol)} />;
 
-  const entrarDemo = (rol: Rol) => {
-    iniciarSesion(USUARIOS_DEMO[rol]);
-    router.replace(rutaInicial(rol));
+  const cambiar = (campo: keyof Campos) => (valor: string) => {
+    setDatos((d) => ({ ...d, [campo]: valor }));
+    setErrores((e) => ({ ...e, [campo]: undefined }));
+  };
+
+  const enviar = async () => {
+    const encontrados = validarInicioSesion(datos);
+    setErrores(encontrados);
+    setErrorGeneral(null);
+    if (hayErrores(encontrados)) return;
+    setEnviando(true);
+    try {
+      const u = await entrar(datos.correo, datos.contrasena);
+      router.replace(rutaInicial(u.rol));
+    } catch (error) {
+      setErrorGeneral(mensajeDeAuth(error));
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-fondo">
-      <View className="flex-1 justify-center p-6">
-        <Text className="font-titulo text-3xl text-primary">{NEGOCIO.nombre}</Text>
-        <Text className="mb-8 font-texto text-lg text-secondary">El cuidado tiene su lugar</Text>
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
+          <Text className="font-titulo text-3xl text-primary">{NEGOCIO.nombre}</Text>
+          <Text className="mb-8 font-texto text-lg text-secondary">El cuidado tiene su lugar</Text>
 
-        <View className="mb-6 rounded-lg border border-borde p-4">
-          <Text className="font-texto text-sm text-secondary">
-            Modo demostración: el inicio de sesión con correo y contraseña (RF-01) aún no está
-            disponible. Elige un rol para recorrer la app.
-          </Text>
-        </View>
+          <CampoTexto
+            etiqueta="Correo"
+            value={datos.correo}
+            onChangeText={cambiar('correo')}
+            error={errores.correo}
+            placeholder="nombre@correo.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            textContentType="emailAddress"
+          />
+          <CampoTexto
+            etiqueta="Contraseña"
+            value={datos.contrasena}
+            onChangeText={cambiar('contrasena')}
+            error={errores.contrasena}
+            secureTextEntry
+            autoComplete="password"
+            textContentType="password"
+            onSubmitEditing={enviar}
+          />
 
-        {ROLES.map((rol) => (
-          <Boton
-            key={rol}
-            variante={rol === 'cliente' ? 'relleno' : 'borde'}
-            className="mb-3"
-            onPress={() => entrarDemo(rol)}
-          >
-            {`Entrar como ${ETIQUETA_ROL[rol]} (demo)`}
+          {errorGeneral ? (
+            <View className="mb-4 rounded-lg border border-peligro p-3">
+              <Text className="font-texto text-sm text-peligro">{errorGeneral}</Text>
+            </View>
+          ) : null}
+
+          <Boton onPress={enviar} cargando={enviando}>
+            Iniciar sesión
           </Boton>
-        ))}
 
-        <Link href="/registro" asChild>
-          <Boton variante="texto">Crear cuenta</Boton>
-        </Link>
-      </View>
+          <Link href="/registro" asChild>
+            <Boton variante="texto" className="mt-2">
+              Crear cuenta
+            </Boton>
+          </Link>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

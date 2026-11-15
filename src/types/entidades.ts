@@ -49,6 +49,9 @@ export interface Cita {
   estado: EstadoCita;
   total: number;
   profesional: string;
+  servicios: { nombre: string; precio: number; duracionMin: number }[];
+  /** Suma de los comprobantes aprobados por el administrador (RN-09). */
+  anticipoAprobado: number;
 }
 
 /** Lo que hace falta de la base para calcular la disponibilidad de una semana (RF-04). */

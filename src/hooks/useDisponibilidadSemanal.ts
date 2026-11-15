@@ -12,7 +12,7 @@ import {
   type DiaDisponibilidad,
   type HorarioEspecial,
 } from '@/lib/disponibilidad';
-import { calcularTotalCita } from '@/lib/reserva';
+import { totalSeleccion } from '@/lib/reserva';
 import { getOcupacionSemana } from '@/services/disponibilidad.api';
 import type { Servicio } from '@/types/entidades';
 
@@ -37,7 +37,7 @@ export function useDisponibilidadSemanal(
   servicios: readonly Servicio[],
   lunes: string,
 ): DisponibilidadSemanal {
-  const duracionMin = calcularTotalCita(servicios).duracionMin;
+  const duracionMin = totalSeleccion(servicios).duracionMin;
 
   const consulta = useQuery({
     queryKey: ['disponibilidad', profesionalId, lunes],

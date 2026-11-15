@@ -11,7 +11,7 @@ import Tarjeta from '@/components/Tarjeta';
 import { useProfesional } from '@/hooks/useProfesionales';
 import { formatoCOP } from '@/lib/dinero';
 import { mensajeDeError } from '@/lib/errores';
-import { calcularTotalCita, faltaServicioPrincipal } from '@/lib/reserva';
+import { faltaServicioPrincipal, totalSeleccion } from '@/lib/reserva';
 import { useReservaStore } from '@/store/useReservaStore';
 
 export default function DetalleProfesional({ id }: { id: string }) {
@@ -48,7 +48,7 @@ export default function DetalleProfesional({ id }: { id: string }) {
     );
   }
 
-  const total = calcularTotalCita(seleccionados);
+  const total = totalSeleccion(seleccionados);
   const soloAdicional = faltaServicioPrincipal(seleccionados);
 
   return (
@@ -98,7 +98,7 @@ export default function DetalleProfesional({ id }: { id: string }) {
 
       <View className="border-t border-borde p-4">
         <Text className="font-texto text-base text-primary">
-          Total: {formatoCOP(total.precio)} · {total.duracionMin} min
+          Total: {formatoCOP(total.total)} · {total.duracionMin} min
         </Text>
         {soloAdicional ? (
           <Text className="mt-1 font-texto text-sm text-peligro">

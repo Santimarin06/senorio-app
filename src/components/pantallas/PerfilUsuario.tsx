@@ -15,9 +15,8 @@ export default function PerfilUsuario() {
   return (
     <ScrollView className="flex-1 bg-fondo" contentContainerStyle={{ padding: 24 }}>
       <Text className="font-titulo text-xl text-primary">{usuario?.nombre ?? ''}</Text>
-      <Text className="mb-6 font-texto text-sm text-secondary">
-        Sesión de demostración: los datos de la cuenta llegan con RF-01.
-      </Text>
+      <Text className="font-texto text-base text-secondary">{usuario?.correo ?? ''}</Text>
+      <Text className="mb-6 font-texto text-base text-secondary">{usuario?.telefono ?? ''}</Text>
 
       <Tarjeta
         titulo="Política de reservas"

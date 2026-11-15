@@ -30,6 +30,15 @@ export const HORARIO = {
   almuerzo: { inicio: '12:00', fin: '13:00' },
 } as const;
 
+/** Parámetros de src/lib/finanzas.ts (multas y devoluciones), tomados de NEGOCIO. */
+export const FINANZAS = {
+  MULTA: NEGOCIO.multa,
+  COSTO_DEVOLUCION: NEGOCIO.costoDevolucion,
+  ABONO_MINIMO: NEGOCIO.abonoMinimo,
+  HORAS_SIN_MULTA: NEGOCIO.horasMinimasCancelarSinMulta,
+  PLAZO_REAGENDAR_NO_ASISTIDA_DIAS: NEGOCIO.diasParaReagendarNoAsistida,
+} as const;
+
 /** "HH:MM" a minutos desde medianoche. */
 const aMinutos = (hora: string): number => {
   const [h = '0', m = '0'] = hora.split(':');

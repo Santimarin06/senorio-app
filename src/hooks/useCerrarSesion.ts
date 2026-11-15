@@ -1,22 +1,24 @@
 // Hook propio para cerrar sesión desde el Drawer, la tab Cuenta y el Perfil.
-// Además de la sesión borra el borrador de reserva y el carrito, para que el siguiente
-// usuario del teléfono no vea lo que dejó el anterior.
+// Además de la sesión borra el borrador de reserva, el carrito y la caché de TanStack Query,
+// para que el siguiente usuario del teléfono no vea lo que dejó el anterior.
+import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useCallback } from 'react';
 
+import { salir } from '@/services/sesion';
 import { useCarritoStore } from '@/store/useCarritoStore';
 import { useReservaStore } from '@/store/useReservaStore';
-import { useSesionStore } from '@/store/useSesionStore';
 
 export const useCerrarSesion = () => {
-  const cerrarSesion = useSesionStore((s) => s.cerrarSesion);
+  const queryClient = useQueryClient();
   const reiniciarReserva = useReservaStore((s) => s.reiniciar);
   const vaciarCarrito = useCarritoStore((s) => s.vaciar);
 
   return useCallback(() => {
     reiniciarReserva();
     vaciarCarrito();
-    cerrarSesion();
+    queryClient.clear();
     router.replace('/login');
-  }, [cerrarSesion, reiniciarReserva, vaciarCarrito]);
+    void salir();
+  }, [queryClient, reiniciarReserva, vaciarCarrito]);
 };
