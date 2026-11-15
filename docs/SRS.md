@@ -1,6 +1,6 @@
 # SRS v2 - Señorío Barber: app móvil de reservas
 
-Nov 6, 2026
+Nov 6, 2026 · v2.1 del 14 nov 2026: incorpora las decisiones D-01 a D-16 de `docs/decisiones.md`.
 
 ## 1. Introducción
 
@@ -98,7 +98,9 @@ Los valores se guardan como configuración, no en el código. "Provisional" es u
 | Plazo para reagendar una cita no asistida | Hasta 2 días desde la fecha de la cita | Confirmado |
 | WhatsApp de la barbería | 3189773741 para reservas, cancelaciones, cotizaciones y comprobantes | Confirmado |
 | Recordatorio al profesional | Notificación en su dispositivo 30 minutos antes de la cita, no por WhatsApp | Confirmado |
-| Medios de pago del anticipo | Nequi, llave Bold y cuenta de ahorros Bancolombia; los datos se cargan como configuración | Confirmado |
+| Medios de pago del anticipo | Nequi 3017821621, llave Bold @bold31897737 y cuenta de ahorros Bancolombia 1700-1463-4228; se cargan como configuración (D-04) | Confirmado |
+| Paso entre franjas | Las franjas empiezan cada 15 minutos (D-07) | Confirmado |
+| Sobrante del anticipo en una no asistencia | El cliente elige devolución (sobrante − $2.000) o pasarlo a la cita reagendada (D-05) | Confirmado |
 | Pago con tarjeta dentro de la app | No en esta versión; posible en una segunda | Confirmado |
 | Colores de la marca | Blanco, negro y gris | Confirmado |
 
@@ -110,9 +112,9 @@ Los valores se guardan como configuración, no en el código. "Provisional" es u
 | RN-02 | Un profesional no puede tener dos citas que se solapen. |
 | RN-03 | Una cita puede incluir varios servicios: su duración y su precio son la suma de los servicios elegidos y sus adicionales (por ejemplo, silla relajante). |
 | RN-04 | Cada servicio solo se ofrece con los profesionales que lo prestan. Todos los servicios de una cita los presta un mismo profesional. |
-| RN-05 | Pasados 10 minutos de la hora de la cita sin llegada, la cita se marca como no asistida. |
+| RN-05 | Pasados 10 minutos de la hora de la cita sin llegada, la cita queda "Por marcar" y el profesional o el administrador la marca a mano como no asistida (D-08). |
 | RN-06 | La no asistencia y la cancelación con menos de 4 horas generan una multa de $10.000, que se descuenta del anticipo. |
-| RN-07 | Un cliente con multa pendiente y sin anticipo no puede reservar hasta pagarla o hasta que el administrador la perdone. |
+| RN-07 | Un cliente con multa pendiente (no cubierta por un anticipo) no puede reservar ni pagar anticipos de reservas nuevas hasta pagarla o hasta que el administrador la perdone (D-06). |
 | RN-08 | El abono no puede ser menor a $10.000 ni mayor al valor de la cita. |
 | RN-09 | El anticipo cuenta como pagado cuando el administrador revisa el comprobante subido por el cliente y lo confirma. |
 | RN-10 | Domingos y festivos permanecen cerrados hasta que el administrador habilite el día, de 10:00 a. m. a 4:00 p. m. |
@@ -121,6 +123,7 @@ Los valores se guardan como configuración, no en el código. "Provisional" es u
 | RN-13 | Antes de reservar, el cliente ve y acepta la política de multas, tolerancia y cancelación. |
 | RN-14 | Sin conexión, la app lo informa y no muestra una reserva, un pago o una cotización como enviados. |
 | RN-15 | Al cancelar sin reagendar, la devolución es el anticipo menos la multa (solo si cancela con menos de 4 horas) menos $2.000, y nunca baja de cero. Si reagenda, el anticipo pasa a la nueva cita. |
+| RN-16 | En una no asistencia con anticipo, el sobrante (anticipo − multa) lo decide el cliente: devolución = sobrante − $2.000, mínimo 0; o reagendar dentro de 2 días con el sobrante pasado a la nueva cita. Si el sobrante es menor que el abono mínimo ($10.000), paga la diferencia hasta $10.000 para confirmar (D-05). |
 
 ## 4. Requisitos funcionales del cliente
 
@@ -146,7 +149,7 @@ Prioridad según MoSCoW: M (debe), S (debería), C (podría).
 
 **Catálogo inicial de servicios**
 
-El administrador puede editarlo desde el panel. Donde el cliente dio un rango se usa el valor mayor para calcular franjas.
+El administrador lo carga y edita desde el panel. Estos valores son **datos de prueba** para el seed; el catálogo real lo ingresa el local con el CRUD (D-01). La silla relajante es un servicio adicional configurable, que solo se elige junto con un servicio principal del mismo profesional (D-02). Donde el cliente dio un rango se usa el valor mayor para calcular franjas.
 
 | Servicio | Duración (min) | Precio (COP) | Quién lo presta |
 |---|---|---|---|
@@ -171,13 +174,13 @@ El panel está integrado en la misma app y es básico pero funcional. El adminis
 | RF-21 | Agenda del profesional | Ve sus citas del día y de la semana, y ninguna de otros profesionales | M |
 | RF-22 | Agenda del administrador | Ve las citas de todos los profesionales y filtra por profesional | M |
 | RF-23 | Asistencia | El profesional marca la asistencia de sus citas y el administrador la de cualquiera, como completada o no asistida; al marcar no asistida se genera la multa | M |
-| RF-24 | Días de trabajo y bloqueos | El administrador habilita domingos y festivos (10:00 a. m. a 4:00 p. m.) y bloquea franjas por días libres o imprevistos; lo bloqueado deja de ofrecerse al cliente | M |
+| RF-24 | Días de trabajo y bloqueos | Los festivos de Colombia se identifican automáticamente (D-09); el administrador habilita domingos y festivos (10:00 a. m. a 4:00 p. m. por defecto), cambia el horario de atención de un día específico y bloquea franjas por días libres o imprevistos; lo bloqueado deja de ofrecerse al cliente y el almuerzo sigue bloqueado | M |
 | RF-25 | Multas | El administrador ve las pendientes, las descuenta del anticipo, las marca como pagadas o las perdona | M |
 | RF-26 | CRUD de servicios | El administrador crea, edita y desactiva servicios con nombre, descripción, duración, precio y profesionales que lo prestan | M |
 | RF-27 | CRUD de productos | El administrador crea, edita y desactiva productos con nombre, descripción, categoría (cabello o barba), precio y foto | M |
 | RF-28 | Comprobantes y devoluciones | El administrador ve la captura del comprobante, confirma o rechaza el anticipo y registra devoluciones con el descuento de $2.000 | S |
 | RF-29 | Gestión de profesionales | El administrador crea y edita profesionales con foto, cargo y servicios | S |
-| RF-30 | Recordatorio al profesional | El profesional recibe una notificación en su dispositivo 30 minutos antes de cada cita | S |
+| RF-30 | Recordatorio y avisos al profesional | El profesional recibe una notificación en su dispositivo 30 minutos antes de cada cita y cuando le reservan una cita nueva; la tab Avisos las lista (D-10, con expo-notifications aprobado en D-12) | S |
 | RF-31 | Cita manual | El administrador registra una cita a nombre de un cliente | C |
 
 La notificación de RF-30 se programa en el dispositivo del profesional cuando la app sincroniza sus citas, así que una cita creada con la app cerrada puede avisar tarde. Hay que probarlo en un Android real.
@@ -208,7 +211,7 @@ Cada requisito obligatorio de los lineamientos de Móvil II se convierte en una 
 
 ## 7. Mapa de pantallas y navegación
 
-Rutas de Expo Router según el mockup del equipo (22 pantallas). El cliente navega con cuatro tabs, el profesional con tres y el administrador con tres; los flujos usan Stack. El mockup no dibuja el Drawer que exigen los lineamientos: se propone un menú lateral con El local, Política de reservas, Privacidad y Cerrar sesión, que hay que agregar al mockup. Al abrir la app se muestra el inicio de sesión y después cada rol llega a su primera tab.
+Rutas de Expo Router según el mockup del equipo (22 pantallas). El cliente navega con cuatro tabs, el profesional con tres y el administrador con tres; los flujos usan Stack. Aunque el mockup no lo dibuja, cada rol tiene un Drawer que envuelve sus Tabs (Drawer › Tabs › Stack) con El local, Política de reservas, Privacidad y Cerrar sesión; Política y Privacidad también aparecen en la tab Cuenta del cliente y en el Perfil del profesional (D-16). Al abrir la app se muestra el inicio de sesión y después cada rol llega a su primera tab. "Olvidé mi contraseña" no se implementa (D-14).
 
 | Pantalla del mockup | Ruta | Navegador | Rol | Requisitos |
 |---|---|---|---|---|
@@ -235,7 +238,7 @@ Rutas de Expo Router según el mockup del equipo (22 pantallas). El cliente nave
 | Gestión (Lo que ofrece el local) | /panel/gestion | Tab | Administrador | RF-26, RF-27, RF-29 |
 | Revisión (Revisar y resolver) | /panel/revision | Tab | Administrador | RF-25, RF-28 |
 
-El Drawer muestra solo las entradas que corresponden al rol de quien inició sesión. Un id inexistente en cualquier ruta dinámica muestra el mensaje de la biblioteca de estados del mockup ("Profesional no encontrado", "No encontramos esta cita"). Faltan por dibujar las tabs Avisos y Perfil del profesional y las pestañas Productos y Profesionales de Gestión.
+El Drawer muestra solo las entradas que corresponden al rol de quien inició sesión. Un id inexistente en cualquier ruta dinámica muestra el mensaje de la biblioteca de estados del mockup ("Profesional no encontrado", "No encontramos esta cita"). Faltan por dibujar las tabs Avisos y Perfil del profesional (contenido en D-10 y D-11) y las pestañas Productos y Profesionales de Gestión. Los estados de cita, anticipo y multa están en D-15.
 
 ## 8. Alcance del MVP
 
@@ -285,5 +288,7 @@ Quedan 13 días desde hoy (6 de noviembre) hasta la entrega del 19 de noviembre 
 
 **Con el cliente**
 
-- ☐ Lista de uñas con precios y duraciones, y el PDF de servicios: el cliente ya los tiene, falta recibirlos.
-- ☐ Dirección o coordenadas de la barbería, logo y fotos de profesionales, servicios y productos: se reciben para el diseño.
+- ☑ Catálogo de servicios, uñas y productos: lo carga el local con el CRUD; se usan datos de prueba (D-01).
+- ☑ Coordenadas de la barbería: 4.812879019062988, -75.70027155767009 (D-03).
+- ☑ Datos de pago de Nequi, Bold y Bancolombia (D-04).
+- ☐ Dirección, logo y fotos de profesionales, servicios y productos: se reciben para el diseño.
