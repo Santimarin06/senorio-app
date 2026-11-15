@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "senorio-barber",
+    "name": "Señorío Barber",
     "slug": "senorio-barber",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "senoriobarber",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon"
     },
@@ -28,9 +28,17 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Señorío Barber usa tu ubicación solo mientras ves el mapa, para mostrarte dónde estás respecto a la barbería."
         }
       ]
     ],
