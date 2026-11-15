@@ -41,7 +41,7 @@ describe('formatoFechaHoraBogota', () => {
     expect(formatoFechaHoraBogota('2026-11-16T20:30:00Z')).toBe('lunes 16 de noviembre, 3:30 p. m.');
     // 02:00 UTC del martes sigue siendo lunes en Bogotá.
     expect(formatoFechaHoraBogota('2026-11-17T02:00:00Z')).toBe('lunes 16 de noviembre, 9:00 p. m.');
-    expect(formatoFechaHoraBogota('2026-11-16T17:00:00Z')).toBe('lunes 16 de noviembre, 12:00 p. m.');
+    expect(formatoFechaHoraBogota('2026-11-16T17:00:00Z')).toBe('lunes 16 de noviembre, 12:00 m.');
   });
 
   it('devuelve texto vacío si la fecha no es válida', () => {

@@ -45,3 +45,23 @@ export interface CitaRespuesta {
   total: number;
   profesionales: { nombre: string } | null;
 }
+
+/** Fila de la función franjas_ocupadas: citas activas y bloqueos, sin datos del cliente. */
+export interface FranjaOcupadaRespuesta {
+  inicio: string;
+  fin: string;
+}
+
+export interface FestivoRespuesta {
+  fecha: string;
+  nombre: string;
+}
+
+/** Postgres devuelve las horas como "HH:MM:SS". */
+export interface DiaHabilitadoRespuesta {
+  fecha: string;
+  abierto: boolean;
+  apertura: string;
+  cierre: string;
+  nota: string | null;
+}

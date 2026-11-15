@@ -30,6 +30,35 @@ export const HORARIO = {
   almuerzo: { inicio: '12:00', fin: '13:00' },
 } as const;
 
+/** "HH:MM" a minutos desde medianoche. */
+const aMinutos = (hora: string): number => {
+  const [h = '0', m = '0'] = hora.split(':');
+  return Number(h) * 60 + Number(m);
+};
+
+/**
+ * Parámetros de src/lib/disponibilidad.ts (disponibilidad semanal), en minutos desde
+ * medianoche en hora de Bogotá. Salen de HORARIO para no repetir las horas. La base valida lo
+ * mismo en validar_horario_cita: si cambian aquí, se cambian allá con una migración (D-23).
+ */
+export const DISPONIBILIDAD = {
+  PASO_MIN: NEGOCIO.pasoFranjaMinutos,
+  /** Minutos mínimos entre "ahora" y el inicio de la cita (D-24: 0, sin antelación mínima). */
+  ANTICIPACION_MIN: 0,
+  ALMUERZO: { inicioMin: aMinutos(HORARIO.almuerzo.inicio), finMin: aMinutos(HORARIO.almuerzo.fin) },
+  HABILITADO: {
+    abreMin: aMinutos(HORARIO.domingoFestivoHabilitado.apertura),
+    cierraMin: aMinutos(HORARIO.domingoFestivoHabilitado.cierre),
+  },
+  LUN_JUE: { abreMin: aMinutos(HORARIO.semana.apertura), cierraMin: aMinutos(HORARIO.semana.cierre) },
+  VIE_SAB: {
+    abreMin: aMinutos(HORARIO.viernesSabado.apertura),
+    cierraMin: aMinutos(HORARIO.viernesSabado.cierre),
+  },
+  /** America/Bogota: UTC-5 fijo, sin horario de verano. */
+  OFFSET_BOGOTA_MIN: -5 * 60,
+} as const;
+
 /** Medios de pago del anticipo (D-04). Se muestran al cliente: no son secretos. */
 export const MEDIOS_PAGO = [
   { nombre: 'Nequi', dato: '3017821621' },

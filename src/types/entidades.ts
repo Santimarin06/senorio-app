@@ -50,3 +50,13 @@ export interface Cita {
   total: number;
   profesional: string;
 }
+
+/** Lo que hace falta de la base para calcular la disponibilidad de una semana (RF-04). */
+export interface OcupacionSemana {
+  /** Citas activas y bloqueos del profesional, instantes UTC (ISO). */
+  ocupadas: { inicio: string; fin: string }[];
+  /** Festivos de la semana, 'YYYY-MM-DD'. */
+  festivos: string[];
+  /** Fechas con horario especial (dias_habilitados), en minutos desde medianoche. */
+  especiales: { fecha: string; abierto: boolean; abreMin: number; cierraMin: number }[];
+}
