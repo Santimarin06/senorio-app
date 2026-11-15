@@ -40,7 +40,7 @@ export default function DetalleProfesional({ id }: { id: string }) {
           mensaje="Profesional no encontrado. Puede que ya no atienda en el local."
         />
         <View className="p-6">
-          <Boton variante="borde" onPress={() => router.back()}>
+          <Boton variante="borde" onPress={() => router.navigate('/reservar')}>
             Volver a profesionales
           </Boton>
         </View>
@@ -105,9 +105,13 @@ export default function DetalleProfesional({ id }: { id: string }) {
             Un adicional solo se puede reservar junto con un servicio principal.
           </Text>
         ) : null}
-        <Text className="mt-1 font-texto text-sm text-secondary">
-          El horario semanal (RF-04) se habilita en la siguiente entrega.
-        </Text>
+        <Boton
+          className="mt-3"
+          disabled={seleccionados.length === 0 || soloAdicional}
+          onPress={() => router.push('/reservar/horario')}
+        >
+          Elegir horario
+        </Boton>
       </View>
     </View>
   );

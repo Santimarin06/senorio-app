@@ -1,27 +1,34 @@
 // Contenido del Drawer (en navegation-app existía CustomDrawer pero no se conectaba).
-// Muestra la marca, las entradas del Drawer y "Cerrar sesión".
+// Muestra la marca, solo las entradas del rol que inició sesión (D-16) y "Cerrar sesión".
+// No usa DrawerItemList: esa lista mostraría las secciones de todos los roles.
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
   DrawerItem,
-  DrawerItemList,
 } from 'expo-router/drawer';
 import { Text, View } from 'react-native';
 
 import { iconoNav } from '@/components/navegacion/iconoNav';
 import { NEGOCIO } from '@/config/negocio';
+import { useCerrarSesion } from '@/hooks/useCerrarSesion';
+import { entradaActiva, entradasDrawer } from '@/lib/navegacion';
 import { useSesionStore } from '@/store/useSesionStore';
+
+const colores = {
+  activo: '#111111',
+  inactivo: '#6B6B6B',
+  fondoActivo: '#E4E4E4',
+};
 
 export default function CustomDrawer(props: DrawerContentComponentProps) {
   const usuario = useSesionStore((estado) => estado.usuario);
-  const cerrarSesion = useSesionStore((estado) => estado.cerrarSesion);
+  const salir = useCerrarSesion();
+  const pathname = usePathname();
 
-  const salir = () => {
-    cerrarSesion();
-    router.replace('/login');
-  };
+  const entradas = usuario ? entradasDrawer(usuario.rol) : [];
+  const activa = entradaActiva(entradas, pathname);
 
   return (
     <DrawerContentScrollView {...props}>
@@ -33,12 +40,29 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
         {usuario ? <Text className="font-texto text-sm text-secondary-100">{usuario.nombre}</Text> : null}
       </View>
 
-      <DrawerItemList {...props} />
+      {entradas.map((entrada) => (
+        <DrawerItem
+          key={entrada.clave}
+          label={entrada.etiqueta}
+          icon={iconoNav(entrada.icono)}
+          focused={entrada.clave === activa}
+          activeTintColor={colores.activo}
+          inactiveTintColor={colores.inactivo}
+          activeBackgroundColor={colores.fondoActivo}
+          labelStyle={{ fontFamily: 'Oswald' }}
+          onPress={() => {
+            props.navigation.closeDrawer();
+            router.navigate(entrada.ruta);
+          }}
+        />
+      ))}
 
       <DrawerItem
         label="Cerrar sesión"
         onPress={salir}
         icon={iconoNav('log-out-outline')}
+        inactiveTintColor={colores.inactivo}
+        labelStyle={{ fontFamily: 'Oswald' }}
       />
     </DrawerContentScrollView>
   );

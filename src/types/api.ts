@@ -32,3 +32,16 @@ export interface ProductoRespuesta {
   foto_url: string | null;
   activo: boolean;
 }
+
+/**
+ * Cita tal como la devolverá la tabla `citas` (esquema supuesto en D-21; la tabla la crea RF-05).
+ * `profesionales` llega embebido por la relación profesional_id.
+ */
+export interface CitaRespuesta {
+  id: string;
+  inicio: string;
+  fin: string;
+  estado: string;
+  total: number;
+  profesionales: { nombre: string } | null;
+}

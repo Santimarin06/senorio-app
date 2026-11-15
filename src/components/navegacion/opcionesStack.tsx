@@ -6,7 +6,13 @@ import { router, useNavigation } from 'expo-router';
 import { DrawerActions } from 'expo-router/react-navigation';
 import { Pressable } from 'react-native';
 
-function BotonCabecera({ puedeVolver }: { puedeVolver: boolean }) {
+interface Props {
+  puedeVolver: boolean;
+  /** Margen del botón: el header del Stack ya trae espacio a la izquierda; el de Tabs no. */
+  className?: string;
+}
+
+export function BotonCabecera({ puedeVolver, className = 'mr-4' }: Props) {
   const navigation = useNavigation();
 
   const alPulsar = () => {
@@ -24,7 +30,7 @@ function BotonCabecera({ puedeVolver }: { puedeVolver: boolean }) {
       hitSlop={12}
       accessibilityRole="button"
       accessibilityLabel={puedeVolver ? 'Volver' : 'Abrir menú'}
-      className="mr-4"
+      className={className}
     >
       <Ionicons name={puedeVolver ? 'arrow-back' : 'menu'} size={24} color="#111111" />
     </Pressable>

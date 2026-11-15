@@ -1,13 +1,10 @@
 // Sesión compartida entre pantallas (Zustand, como los stores del proyecto Mapas).
+// Es temporal: vive en memoria y se pierde al cerrar la app. RF-01 la reemplaza por Supabase Auth.
 import { create } from 'zustand';
 
-export type Rol = 'cliente' | 'profesional' | 'administrador';
+import type { Rol, Usuario } from '@/types/sesion';
 
-export interface Usuario {
-  id: string;
-  nombre: string;
-  rol: Rol;
-}
+export type { Rol, Usuario };
 
 interface SesionState {
   usuario: Usuario | null;

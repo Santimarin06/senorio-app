@@ -30,3 +30,23 @@ export interface Producto {
   precio: number;
   foto: string | null;
 }
+
+/** Estados de la cita (D-15). */
+export type EstadoCita =
+  | 'confirmada'
+  | 'por_marcar'
+  | 'asistida'
+  | 'no_asistida'
+  | 'cancelada_a_tiempo'
+  | 'cancelada_tarde'
+  | 'reagendada';
+
+export interface Cita {
+  id: string;
+  /** Instantes en UTC (ISO). Se muestran en hora de Bogotá. */
+  inicio: string;
+  fin: string;
+  estado: EstadoCita;
+  total: number;
+  profesional: string;
+}
