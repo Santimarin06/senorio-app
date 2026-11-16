@@ -34,19 +34,22 @@ supabase-api.ts (axios) → profesionales.api.ts (getProfesionales) → profesio
 src/app/_layout.tsx            Stack raíz (fuentes, splash, QueryClientProvider)
 ├── index.tsx                  Redirect a /login
 ├── login.tsx, registro.tsx
-└── (cliente)/_layout.tsx      Drawer con CustomDrawer (El local, Política, Privacidad, Cerrar sesión)
+└── (app)/_layout.tsx          Drawer único con CustomDrawer: sección del rol, El local, Política, Privacidad, Cerrar sesión (D-22)
     ├── mapa.tsx, politica.tsx, privacidad.tsx
-    └── (tabs)/_layout.tsx     Tabs: Inicio, Citas, Productos, Cuenta
-        ├── (inicio)/_layout.tsx   Stack: inicio, reservar/index, reservar/[profesionalId]
-        ├── (citas)/…  (productos)/…  (cuenta)/…   un Stack por tab
+    ├── (cliente)/_layout.tsx  Tabs del cliente: Inicio, Citas, Productos, Cuenta
+    │   ├── (inicio)/…         Stack: inicio, reservar/index, reservar/[profesionalId], horario, resumen, confirmacion
+    │   └── (citas)/…  (productos)/…  (cuenta)/…   un Stack por tab
+    └── panel/
+        ├── (profesional)/_layout.tsx     Tabs: Mi agenda, Avisos, Perfil
+        └── (administrador)/_layout.tsx   Tabs: Agenda, Gestión, Revisión
 ```
 
 | En clase | Aquí |
 |---|---|
-| `(drawer)/_layout.tsx` con `Drawer` de `expo-router/drawer` | [src/app/(cliente)/_layout.tsx](../src/app/(cliente)/_layout.tsx) |
+| `(drawer)/_layout.tsx` con `Drawer` de `expo-router/drawer` | [src/app/(app)/_layout.tsx](../src/app/(app)/_layout.tsx) |
 | `CustomDrawer` sin conectar | [src/components/CustomDrawer.tsx](../src/components/CustomDrawer.tsx) conectado con `drawerContent`, `DrawerItemList` y "Cerrar sesión" |
 | `(stack)/_layout.tsx` con `headerLeft`: atrás o abrir el drawer | [src/components/navegacion/opcionesStack.tsx](../src/components/navegacion/opcionesStack.tsx), compartido por los cuatro Stack; usa `DrawerActions.toggleDrawer()` sin `as any` |
-| `products/[id].tsx` con `useLocalSearchParams` y `setOptions` | [reservar/[profesionalId].tsx](../src/app/(cliente)/(tabs)/(inicio)/reservar/[profesionalId].tsx) + [DetalleProfesional](../src/components/pantallas/DetalleProfesional.tsx); id inexistente: mensaje, no `Redirect` |
+| `products/[id].tsx` con `useLocalSearchParams` y `setOptions` | [reservar/[profesionalId].tsx](../src/app/(app)/(cliente)/(inicio)/reservar/[profesionalId].tsx) + [DetalleProfesional](../src/components/pantallas/DetalleProfesional.tsx); id inexistente: mensaje, no `Redirect` |
 | `CustomButton` (forwardRef, `<Link asChild>`) | [src/components/Boton.tsx](../src/components/Boton.tsx), una sola copia |
 | `useFonts` + `SplashScreen` | [src/app/_layout.tsx](../src/app/_layout.tsx) con ArchivoBlack y Oswald |
 
@@ -66,7 +69,7 @@ src/app/_layout.tsx            Stack raíz (fuentes, splash, QueryClientProvider
 | Coordenadas de Dosquebradas | `UBICACION_LOCAL` en [src/config/negocio.ts](../src/config/negocio.ts) (D-03) |
 | `app.json` sin plugin de ubicación | Plugin `expo-location` con el texto del permiso |
 
-Otros stores compartidos: [useSesionStore](../src/store/useSesionStore.ts), [useReservaStore](../src/store/useReservaStore.ts) (borrador de la reserva) y [useCarritoStore](../src/store/useCarritoStore.ts) (cantidades de 1 a 10). `src/store/` es una carpeta nueva respecto a la estructura de clase; en clase los stores estaban en `presentation/store`.
+Otros stores compartidos: [useSesionStore](../src/store/useSesionStore.ts), [useReservaStore](../src/store/useReservaStore.ts) (borrador de la reserva) y [useCarritoStore](../src/store/useCarritoStore.ts) (cantidades de 1 a 10). `src/store/` ya figura en la estructura del proyecto; en clase los stores estaban en `presentation/store`.
 
 ## Lógica pura con pruebas (`src/lib`)
 
