@@ -10,15 +10,22 @@ import type { LatLng } from '@/types/ubicacion';
 interface UbicacionState {
   ultimaUbicacion: LatLng | null;
   suscripcion: LocationSubscription | null;
+  /**
+   * Sube con cada iniciar o detener. Pedir la suscripción tarda (es una promesa): si mientras
+   * tanto alguien detuvo o volvió a iniciar, la suscripción que llega ya no sirve y se libera.
+   */
+  generacion: number;
 
   obtenerUbicacion: () => Promise<LatLng>;
-  iniciarSeguimiento: () => Promise<void>;
+  /** true si el seguimiento quedó activo; false si se detuvo antes de que llegara la suscripción. */
+  iniciarSeguimiento: () => Promise<boolean>;
   detenerSeguimiento: () => void;
 }
 
 export const useUbicacionStore = create<UbicacionState>()((set, get) => ({
   ultimaUbicacion: null,
   suscripcion: null,
+  generacion: 0,
 
   obtenerUbicacion: async () => {
     const ubicacion = await obtenerUbicacionActual();
@@ -28,12 +35,20 @@ export const useUbicacionStore = create<UbicacionState>()((set, get) => ({
 
   iniciarSeguimiento: async () => {
     get().suscripcion?.remove(); // nunca dos suscripciones a la vez
+    const miGeneracion = get().generacion + 1;
+    set({ suscripcion: null, generacion: miGeneracion });
     const suscripcion = await seguirUbicacion((ubicacion) => set({ ultimaUbicacion: ubicacion }));
+    // Se salió del mapa (o se pausó) mientras llegaba la suscripción: no queda viva.
+    if (get().generacion !== miGeneracion) {
+      suscripcion.remove();
+      return false;
+    }
     set({ suscripcion });
+    return true;
   },
 
   detenerSeguimiento: () => {
     get().suscripcion?.remove();
-    set({ suscripcion: null });
+    set((s) => ({ suscripcion: null, generacion: s.generacion + 1 }));
   },
 }));

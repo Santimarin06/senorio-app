@@ -2,12 +2,13 @@
 // hay citas dentro (no las cancela) y solo vuelve atrás cuando la base guardó el bloqueo.
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 
 import Boton from '@/components/Boton';
 import CampoTexto from '@/components/CampoTexto';
 import Chip from '@/components/Chip';
 import EstadoPantalla from '@/components/EstadoPantalla';
+import FormularioConTeclado from '@/components/FormularioConTeclado';
 import { NavegadorFecha } from '@/components/PartesAgenda';
 import { useAgenda } from '@/hooks/useAgenda';
 import { useCrearBloqueo, useDiasEspeciales } from '@/hooks/useDiasTrabajo';
@@ -93,7 +94,7 @@ export default function NuevoBloqueo() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-fondo" contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+    <FormularioConTeclado>
       <NavegadorFecha
         titulo={`${mayuscula(etiquetaDia(fecha).largo)}${fecha === hoy ? ' · Hoy' : ''}`}
         onAnterior={() => setFecha((f) => sumarDias(f, -1))}
@@ -176,6 +177,6 @@ export default function NuevoBloqueo() {
       <Boton className="mt-6" onPress={enviar} cargando={crear.isPending} disabled={crear.isPending}>
         Guardar bloqueo
       </Boton>
-    </ScrollView>
+    </FormularioConTeclado>
   );
 }

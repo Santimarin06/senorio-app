@@ -3,13 +3,14 @@
 // base registró el comprobante se pasa a "Recibido para revisión" (RN-12, RN-14).
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import CampoTexto from '@/components/CampoTexto';
 import Chip from '@/components/Chip';
 import EstadoPantalla from '@/components/EstadoPantalla';
+import FormularioConTeclado from '@/components/FormularioConTeclado';
 import PantallaPendiente from '@/components/PantallaPendiente';
 import SelectorImagenComprobante from '@/components/SelectorImagenComprobante';
 import { MEDIOS_PAGO, NEGOCIO } from '@/config/negocio';
@@ -133,11 +134,7 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-fondo"
-      contentContainerStyle={{ padding: 24 }}
-      keyboardShouldPersistTaps="handled"
-    >
+    <FormularioConTeclado relleno={24}>
       <Text className="font-texto text-sm text-secondary">ANTICIPO · {codigoCita(cita.id)}</Text>
       <Text className="font-titulo text-2xl text-primary">A tu ritmo, también el pago.</Text>
       <Text className="mb-4 mt-1 font-texto text-base text-secondary">
@@ -263,7 +260,7 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
           </Text>
         </>
       )}
-    </ScrollView>
+    </FormularioConTeclado>
   );
 }
 

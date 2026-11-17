@@ -4,8 +4,9 @@
 -- Uso: pegar en el editor SQL de Supabase (o execute_sql) después de aplicar la migración
 -- 20261117235000_reagendar_cita.sql. Si alguna regla falla, la consulta termina con el error
 -- "Falla: ..."; si todo pasa, devuelve una fila con 'ok'.
--- Necesita un cliente sin multa pendiente, un profesional activo y un administrador. Usa el
--- martes 1 de diciembre de 2026 por la tarde (hora de Bogotá).
+-- Necesita un cliente sin multa pendiente y un administrador. Crea su propio profesional, así
+-- sus citas no chocan con las reales. Usa el martes 1 de diciembre de 2026 por la tarde (hora
+-- de Bogotá): fallaría solo si ese día está cerrado o bloqueado para todo el local.
 
 begin;
 
@@ -30,10 +31,13 @@ begin
   select p.id into v_cliente from public.perfiles p
   where p.rol = 'cliente' and not public.tiene_multa_pendiente(p.id) limit 1;
   select id into v_admin from public.perfiles where rol = 'administrador' limit 1;
-  select id into v_prof from public.profesionales where activo limit 1;
-  if v_cliente is null or v_prof is null or v_admin is null then
-    raise exception 'Falla: hace falta un cliente sin multa, un profesional activo y un administrador.';
+  if v_cliente is null or v_admin is null then
+    raise exception 'Falla: hace falta un cliente sin multa y un administrador.';
   end if;
+  -- Profesional propio de la prueba (se deshace con el rollback): sus citas no pueden chocar
+  -- con citas reales (RN-02), que fue lo que hizo fallar la prueba el 17 nov con Mario.
+  insert into public.profesionales (nombre, cargo) values ('Prueba reagendar', 'Barbero')
+  returning id into v_prof;
 
   -- Citas de prueba insertadas como postgres (sin pasar por reservar_cita).
   insert into public.citas (cliente_id, profesional_id, inicio, fin, total)

@@ -1,9 +1,10 @@
 // Revisión del administrador (RF-25, RF-28, mockup "Revisar y resolver"): pestañas
 // Comprobantes, Multas y Devoluciones, cada una con su contador de pendientes.
 import { useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, Text, View } from 'react-native';
 
 import Chip from '@/components/Chip';
+import FormularioConTeclado from '@/components/FormularioConTeclado';
 import RevisionComprobantes from '@/components/revision/RevisionComprobantes';
 import RevisionDevoluciones from '@/components/revision/RevisionDevoluciones';
 import RevisionMultas from '@/components/revision/RevisionMultas';
@@ -38,12 +39,8 @@ export default function Revision() {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-fondo"
-      contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={<RefreshControl refreshing={refrescando} onRefresh={refrescar} />}
-    >
+    // FormularioConTeclado: el motivo de rechazo (RevisionComprobantes) no queda bajo el teclado.
+    <FormularioConTeclado refreshControl={<RefreshControl refreshing={refrescando} onRefresh={refrescar} />}>
       <Text className="font-titulo text-2xl text-primary">Revisar y resolver.</Text>
       <View className="mt-3 flex-row flex-wrap">
         <Chip
@@ -72,6 +69,6 @@ export default function Revision() {
           <RevisionDevoluciones />
         )}
       </View>
-    </ScrollView>
+    </FormularioConTeclado>
   );
 }
