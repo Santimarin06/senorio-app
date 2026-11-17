@@ -7,7 +7,7 @@ import Boton from '@/components/Boton';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import { useBloqueos, useQuitarBloqueo } from '@/hooks/useDiasTrabajo';
 import { fechaBogota, horaBogota } from '@/lib/agenda';
-import { mensajeDeDiasTrabajo, mensajeDeError } from '@/lib/errores';
+import { mensajeDeDiasTrabajo, tituloDeError } from '@/lib/errores';
 import { etiquetaDia, mayuscula } from '@/lib/fechas';
 import type { Bloqueo } from '@/types/entidades';
 
@@ -26,7 +26,7 @@ export default function Bloqueos() {
           style: 'destructive',
           onPress: () =>
             quitar.mutate(bloqueo.id, {
-              onError: (e) => Alert.alert('No se quitó', mensajeDeDiasTrabajo(e)),
+              onError: (e) => Alert.alert(tituloDeError(e, 'No se quitó'), mensajeDeDiasTrabajo(e)),
             }),
         },
       ],
@@ -46,7 +46,7 @@ export default function Bloqueos() {
 
   if (isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando los bloqueos…" />;
   if (isError) {
-    return <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={refetch} />;
+    return <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />;
   }
 
   return (

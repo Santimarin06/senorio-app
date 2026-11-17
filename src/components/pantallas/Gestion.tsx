@@ -17,7 +17,6 @@ import {
   useServiciosGestion,
 } from '@/hooks/useGestion';
 import { formatoCOP } from '@/lib/dinero';
-import { mensajeDeError } from '@/lib/errores';
 import {
   coincideProducto,
   coincideProfesional,
@@ -37,7 +36,7 @@ function PestanaServicios() {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(servicios.error)}
+        error={servicios.error}
         onReintentar={() => void servicios.refetch()}
       />
     );
@@ -74,7 +73,7 @@ function PestanaProductos() {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(productos.error)}
+        error={productos.error}
         onReintentar={() => void productos.refetch()}
       />
     );
@@ -114,7 +113,7 @@ function PestanaProfesionales() {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(profesionales.error)}
+        error={profesionales.error}
         onReintentar={() => void profesionales.refetch()}
       />
     );

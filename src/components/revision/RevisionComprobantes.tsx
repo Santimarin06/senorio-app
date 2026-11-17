@@ -12,7 +12,7 @@ import { DatosCita, Fila } from '@/components/revision/PartesRevision';
 import { MEDIOS_PAGO } from '@/config/negocio';
 import { useComprobantesPendientes, useRevisarComprobante } from '@/hooks/useRevision';
 import { codigoComprobante } from '@/lib/codigoCita';
-import { mensajeDeError, mensajeDeRevision } from '@/lib/errores';
+import { mensajeDeRevision, tituloDeError } from '@/lib/errores';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { formatoCOP } from '@/lib/finanzas';
 import { efectoRevision, NOTA_RECHAZO_MAX, validarNotaRechazo } from '@/lib/revision';
@@ -27,7 +27,7 @@ export default function RevisionComprobantes() {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(consulta.error)}
+        error={consulta.error}
         onReintentar={() => void consulta.refetch()}
       />
     );
@@ -51,7 +51,7 @@ export default function RevisionComprobantes() {
               { id: c.id, revision },
               {
                 onSuccess: alTerminar,
-                onError: (e) => Alert.alert('No se guardó', mensajeDeRevision(e)),
+                onError: (e) => Alert.alert(tituloDeError(e), mensajeDeRevision(e)),
               },
             )
           }

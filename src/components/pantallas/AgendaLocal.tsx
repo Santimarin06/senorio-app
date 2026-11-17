@@ -18,7 +18,6 @@ import { useProfesionales } from '@/hooks/useProfesionales';
 import { filasDelDia } from '@/lib/agenda';
 import { festivosDelRango, horarioVigente, textoVentana } from '@/lib/diasTrabajo';
 import { aBogota, sumarDias } from '@/lib/disponibilidad';
-import { mensajeDeError } from '@/lib/errores';
 import { etiquetaDia, mayuscula } from '@/lib/fechas';
 
 /** Chip "Todos": sin filtro de profesional. */
@@ -100,7 +99,7 @@ export default function AgendaLocal() {
         ) : agenda.isError ? (
           <EstadoPantalla
             tipo="error"
-            mensaje={mensajeDeError(agenda.error)}
+            error={agenda.error}
             onReintentar={() => void agenda.refetch()}
           />
         ) : citas.length === 0 ? (

@@ -29,7 +29,7 @@ import {
   validarJornada,
 } from '@/lib/diasTrabajo';
 import { aBogota, CONFIG, sumarDias } from '@/lib/disponibilidad';
-import { mensajeDeDiasTrabajo, mensajeDeError } from '@/lib/errores';
+import { mensajeDeDiasTrabajo, tituloDeError } from '@/lib/errores';
 import { etiquetaDia, mayuscula } from '@/lib/fechas';
 import type { CitaAgenda, DiaEspecial } from '@/types/entidades';
 
@@ -48,7 +48,9 @@ export default function HorarioDia({ fechaInicial }: { fechaInicial?: string }) 
       <EstadoPantalla
         tipo="vacio"
         icono="calendar-clear-outline"
-        mensaje="Esa fecha no es válida o ya pasó. Vuelve a los días laborables y elige otra."
+        titulo="Fecha no válida"
+        mensaje="Esa fecha no existe o ya pasó. Elige otra en los días laborables."
+        accion={{ texto: 'Ver días laborables', onPress: () => router.navigate('/panel/dias') }}
       />
     );
   }
@@ -57,11 +59,13 @@ export default function HorarioDia({ fechaInicial }: { fechaInicial?: string }) 
     if (dias.isPending || agenda.isPending) {
       return <EstadoPantalla tipo="carga" mensaje="Revisando el horario y las citas del día…" />;
     }
-    if (dias.isError || agenda.isError) {
+    // Solo sin datos se cambia el formulario por el error: si falla un refresco (al volver a la
+    // app sin internet) se conservan los datos y no se pierde lo escrito (RN-14).
+    if (dias.data === undefined || agenda.data === undefined) {
       return (
         <EstadoPantalla
           tipo="error"
-          mensaje={mensajeDeError(dias.error ?? agenda.error)}
+          error={dias.error ?? agenda.error}
           onReintentar={() => {
             void dias.refetch();
             void agenda.refetch();
@@ -148,7 +152,7 @@ function FormularioDia({
           Alert.alert('Guardado', `${mayuscula(etiquetaDia(fecha).largo)}: ${abierto ? textoVentana(nuevaVentana) : 'cerrado'}.`);
           router.back();
         },
-        onError: (e) => Alert.alert('No se guardó', mensajeDeDiasTrabajo(e)),
+        onError: (e) => Alert.alert(tituloDeError(e), mensajeDeDiasTrabajo(e)),
       });
     if (fuera.length === 0) return ejecutar();
     Alert.alert(
@@ -178,7 +182,7 @@ function FormularioDia({
           onPress: () =>
             quitar.mutate(fecha, {
               onSuccess: () => router.back(),
-              onError: (e) => Alert.alert('No se quitó', mensajeDeDiasTrabajo(e)),
+              onError: (e) => Alert.alert(tituloDeError(e, 'No se quitó'), mensajeDeDiasTrabajo(e)),
             }),
         },
       ],

@@ -11,7 +11,6 @@ import EstadoPantalla from '@/components/EstadoPantalla';
 import SelectorFranja from '@/components/SelectorFranja';
 import type { DisponibilidadSemanal } from '@/hooks/useDisponibilidadSemanal';
 import { sumarDias, type DiaDisponibilidad } from '@/lib/disponibilidad';
-import { mensajeDeError } from '@/lib/errores';
 import { etiquetaDia } from '@/lib/fechas';
 
 export interface SeleccionFranja {
@@ -88,7 +87,7 @@ export default function SelectorSemana({
 
       {cargando ? <EstadoPantalla tipo="carga" mensaje="Buscando horarios…" /> : null}
       {!cargando && error ? (
-        <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={reintentar} />
+        <EstadoPantalla tipo="error" error={error} onReintentar={reintentar} />
       ) : null}
 
       {!cargando && !error && dias.length > 0 ? (

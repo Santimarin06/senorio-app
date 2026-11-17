@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Alert, Text, View } from 'react-native';
 
+import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import CampoTexto from '@/components/CampoTexto';
 import { useGuardarMisDatos } from '@/hooks/usePerfil';
@@ -25,7 +26,6 @@ interface Props {
 export default function EditarDatos({ usuario, onTerminar }: Props) {
   const [datos, setDatos] = useState<DatosPerfil>({ nombre: usuario.nombre, telefono: usuario.telefono });
   const [errores, setErrores] = useState<ErroresFormulario<DatosPerfil>>({});
-  const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
   const guardar = useGuardarMisDatos();
 
   const cambiar = (campo: keyof DatosPerfil) => (valor: string) => {
@@ -34,7 +34,6 @@ export default function EditarDatos({ usuario, onTerminar }: Props) {
   };
 
   const enviar = () => {
-    setErrorGuardar(null);
     const encontrados = validarDatosPerfil(datos);
     setErrores(encontrados);
     if (hayErrores(encontrados)) return;
@@ -47,7 +46,6 @@ export default function EditarDatos({ usuario, onTerminar }: Props) {
         Alert.alert('Datos guardados', 'Tu nombre y tu teléfono quedaron actualizados.');
         onTerminar();
       },
-      onError: (e) => setErrorGuardar(mensajeDePerfil(e)),
     });
   };
 
@@ -76,10 +74,9 @@ export default function EditarDatos({ usuario, onTerminar }: Props) {
         El correo es tu usuario para entrar y no se cambia desde la app.
       </Text>
 
-      {errorGuardar ? (
-        <View className="mb-4 rounded-lg border border-peligro p-3">
-          <Text className="font-texto text-sm text-peligro">{errorGuardar}</Text>
-        </View>
+      {/* RN-14: si falla, los datos escritos siguen en el formulario para reintentar. */}
+      {guardar.isError ? (
+        <AvisoEscritura error={guardar.error} mensaje={mensajeDePerfil(guardar.error)} className="mb-4" />
       ) : null}
 
       <Boton onPress={enviar} cargando={guardar.isPending}>

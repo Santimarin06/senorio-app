@@ -19,7 +19,6 @@ import {
   type VistaAgenda,
 } from '@/lib/agenda';
 import { aBogota, sumarDias } from '@/lib/disponibilidad';
-import { mensajeDeError } from '@/lib/errores';
 import { etiquetaDia, mayuscula } from '@/lib/fechas';
 import { useSesionStore } from '@/store/useSesionStore';
 import type { CitaAgenda } from '@/types/entidades';
@@ -110,7 +109,7 @@ function AgendaProfesional({ profesionalId, nombre }: { profesionalId: string; n
       {isPending ? (
         <EstadoPantalla tipo="carga" mensaje="Cargando tu agenda…" />
       ) : isError ? (
-        <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={refetch} />
+        <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />
       ) : data.length === 0 ? (
         <EstadoPantalla tipo="vacio" icono="calendar-clear-outline" mensaje={vacio} />
       ) : (

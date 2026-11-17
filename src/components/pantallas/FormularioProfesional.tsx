@@ -24,7 +24,7 @@ import {
   useServiciosGestion,
 } from '@/hooks/useGestion';
 import { useIdDeRuta } from '@/hooks/useIdDeRuta';
-import { mensajeDeError, mensajeDeGestion } from '@/lib/errores';
+import { mensajeDeGestion, tituloDeError } from '@/lib/errores';
 import {
   entradaDeProfesional,
   validarProfesional,
@@ -48,11 +48,13 @@ export default function FormularioProfesional() {
   if (profesionales.isPending || servicios.isPending) {
     return <EstadoPantalla tipo="carga" mensaje="Cargando el formulario…" />;
   }
-  if (profesionales.isError || servicios.isError) {
+  // Solo sin datos se cambia el formulario por el error: si falla un refresco (al volver a la
+  // app sin internet) se conservan los datos y no se pierde lo escrito (RN-14).
+  if (profesionales.data === undefined || servicios.data === undefined) {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(profesionales.error ?? servicios.error)}
+        error={profesionales.error ?? servicios.error}
         onReintentar={() => {
           void profesionales.refetch();
           void servicios.refetch();
@@ -64,12 +66,13 @@ export default function FormularioProfesional() {
   const profesional = id === '' ? null : (profesionales.data.find((p) => p.id === id) ?? null);
   if (id !== '' && !profesional) {
     return (
-      <View className="flex-1 bg-fondo">
-        <EstadoPantalla tipo="vacio" mensaje="Profesional no encontrado. Puede que el enlace sea viejo." />
-        <Boton variante="borde" className="mx-6 mb-8" onPress={() => router.back()}>
-          Volver a la gestión
-        </Boton>
-      </View>
+      <EstadoPantalla
+        tipo="vacio"
+        icono="search-outline"
+        titulo="Profesional no encontrado"
+        mensaje="Puede que ya no exista o que el enlace esté incompleto."
+        accion={{ texto: 'Volver a la gestión', onPress: () => router.navigate('/panel/gestion') }}
+      />
     );
   }
 
@@ -147,7 +150,7 @@ function Formulario({
           );
           router.back();
         },
-        onError: (e) => Alert.alert('No se guardó', mensajeDeGestion(e)),
+        onError: (e) => Alert.alert(tituloDeError(e), mensajeDeGestion(e)),
       },
     );
   };
@@ -191,7 +194,7 @@ function Formulario({
         etiqueta="Nombre visible"
         value={entrada.nombre}
         onChangeText={(v) => cambiar('nombre', v)}
-        placeholder="Mario"
+        placeholder="Nombre y apellido"
         maxLength={GESTION.nombreMaximo}
         error={errores.nombre}
       />

@@ -10,7 +10,6 @@ import EstadoPantalla from '@/components/EstadoPantalla';
 import { NEGOCIO } from '@/config/negocio';
 import { useMisMultasPendientes } from '@/hooks/useCita';
 import { codigoCita } from '@/lib/codigoCita';
-import { mensajeDeError } from '@/lib/errores';
 import { formatoFechaHoraBogota, mayuscula } from '@/lib/fechas';
 import { formatoCOP } from '@/lib/finanzas';
 import { enlaceWhatsApp, mensajeMulta } from '@/lib/whatsapp';
@@ -84,7 +83,7 @@ export default function MultasCuenta() {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(multas.error)}
+        error={multas.error}
         onReintentar={() => void multas.refetch()}
       />
     );

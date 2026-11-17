@@ -1,30 +1,29 @@
-// Pantalla del esqueleto cuya función llega en otra entrega. Dice qué requisito falta y,
-// si hay una acción, la ofrece con un botón que sí navega: nunca un botón sin efecto.
+// Estado de guarda o vacío con acciones que sí navegan (por ejemplo, "No encontramos esta
+// cita" o "Tu bolsa está vacía"). Nunca es relleno de una función: nunca un botón sin efecto.
 import type { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 
 import Boton from '@/components/Boton';
-import EstadoPantalla from '@/components/EstadoPantalla';
+import EstadoPantalla, { type AccionEstado } from '@/components/EstadoPantalla';
 
-export interface AccionPendiente {
-  texto: string;
-  onPress: () => void;
-}
+export type AccionPendiente = AccionEstado;
 
 interface Props {
   mensaje: string;
+  titulo?: string;
   icono?: keyof typeof Ionicons.glyphMap;
   acciones?: AccionPendiente[];
 }
 
 export default function PantallaPendiente({
   mensaje,
-  icono = 'construct-outline',
+  titulo,
+  icono = 'information-circle-outline',
   acciones = [],
 }: Props) {
   return (
     <View className="flex-1 bg-fondo">
-      <EstadoPantalla tipo="vacio" icono={icono} mensaje={mensaje} />
+      <EstadoPantalla tipo="vacio" icono={icono} titulo={titulo} mensaje={mensaje} />
       {acciones.length > 0 ? (
         <View className="p-6">
           {acciones.map((accion, i) => (

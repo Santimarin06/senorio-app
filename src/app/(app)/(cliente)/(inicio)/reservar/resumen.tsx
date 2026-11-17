@@ -7,11 +7,12 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import PantallaPendiente from '@/components/PantallaPendiente';
 import { PUNTOS_POLITICA } from '@/components/pantallas/PoliticaReservas';
 import { useMultaPendiente, useReservarCita } from '@/hooks/useCita';
-import { esFranjaTomada, mensajeDeReserva } from '@/lib/errores';
+import { esFranjaTomada, esSinConexion, mensajeDeReserva } from '@/lib/errores';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { formatoCOP, puedeReservar } from '@/lib/finanzas';
 import { totalSeleccion } from '@/lib/reserva';
@@ -24,7 +25,6 @@ export default function ResumenScreen() {
   const reiniciar = useReservaStore((s) => s.reiniciar);
 
   const [acepta, setAcepta] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [franjaTomada, setFranjaTomada] = useState(false);
   const multa = useMultaPendiente();
   const reservar = useReservarCita();
@@ -44,7 +44,6 @@ export default function ResumenScreen() {
   const bloqueadoPorMulta = !puedeReservar(multaPendiente);
 
   const confirmar = () => {
-    setError(null);
     reservar.mutate(
       { profesionalId: profesional.id, servicioIds: servicios.map((s) => s.id), inicio },
       {
@@ -56,7 +55,6 @@ export default function ResumenScreen() {
           // Si otro cliente tomó la franja mientras este elegía, solo queda elegir otra: el
           // horario ya se está refrescando (useReservarCita invalida la disponibilidad).
           setFranjaTomada(esFranjaTomada(e));
-          setError(mensajeDeReserva(e));
         },
       },
     );
@@ -113,10 +111,9 @@ export default function ResumenScreen() {
         </View>
       ) : null}
 
-      {error ? (
-        <View className="mb-4 rounded-lg border border-peligro p-3">
-          <Text className="font-texto text-sm text-peligro">{error}</Text>
-        </View>
+      {/* RN-14: sin respuesta de la base nada quedó registrado y la selección sigue aquí. */}
+      {reservar.isError ? (
+        <AvisoEscritura error={reservar.error} mensaje={mensajeDeReserva(reservar.error)} className="mb-4" />
       ) : null}
 
       {franjaTomada ? (
@@ -128,7 +125,7 @@ export default function ResumenScreen() {
             cargando={reservar.isPending}
             disabled={!acepta || bloqueadoPorMulta || multa.isPending}
           >
-            Confirmar cita
+            {reservar.isError && esSinConexion(reservar.error) ? 'Reintentar al conectarte' : 'Confirmar cita'}
           </Boton>
           <Boton variante="borde" className="mt-3" onPress={() => router.back()}>
             Cambiar horario

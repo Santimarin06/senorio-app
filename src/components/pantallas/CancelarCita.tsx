@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, ScrollView, Text, View } from 'react-native';
 
+import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import PantallaPendiente from '@/components/PantallaPendiente';
 import { NEGOCIO } from '@/config/negocio';
@@ -111,7 +112,7 @@ export default function CancelarCita({ cita }: { cita: Cita }) {
       </Boton>
 
       {cancelar.isError ? (
-        <Text className="mb-3 font-texto text-sm text-peligro">{mensajeDeCancelacion(cancelar.error)}</Text>
+        <AvisoEscritura error={cancelar.error} mensaje={mensajeDeCancelacion(cancelar.error)} />
       ) : null}
 
       <Text className="font-texto text-sm text-secondary">

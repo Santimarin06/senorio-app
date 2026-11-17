@@ -7,7 +7,7 @@ import Boton from '@/components/Boton';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import { DatosCita } from '@/components/revision/PartesRevision';
 import { useHistorialMultas, useMultasPendientes, useResolverMulta } from '@/hooks/useRevision';
-import { mensajeDeError, mensajeDeRevision } from '@/lib/errores';
+import { mensajeDeError, mensajeDeRevision, tituloDeError } from '@/lib/errores';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { formatoCOP } from '@/lib/finanzas';
 import { ETIQUETA_MULTA, MOTIVO_MULTA } from '@/models/revision.mapper';
@@ -32,7 +32,7 @@ export default function RevisionMultas() {
           onPress: () =>
             resolver.mutate(
               { id: m.id, estado },
-              { onError: (e) => Alert.alert('No se guardó', mensajeDeRevision(e)) },
+              { onError: (e) => Alert.alert(tituloDeError(e), mensajeDeRevision(e)) },
             ),
         },
       ],
@@ -46,7 +46,7 @@ export default function RevisionMultas() {
       ) : pendientes.isError ? (
         <EstadoPantalla
           tipo="error"
-          mensaje={mensajeDeError(pendientes.error)}
+          error={pendientes.error}
           onReintentar={() => void pendientes.refetch()}
         />
       ) : pendientes.data.length === 0 ? (

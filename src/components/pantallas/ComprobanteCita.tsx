@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Linking, ScrollView, Text, View } from 'react-native';
 
+import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import PantallaPendiente from '@/components/PantallaPendiente';
 import SelectorImagenComprobante from '@/components/SelectorImagenComprobante';
@@ -14,7 +15,7 @@ import { MEDIOS_PAGO } from '@/config/negocio';
 import { useEnviarComprobante, useImagenComprobante } from '@/hooks/useComprobante';
 import { useElegirImagen } from '@/hooks/useElegirImagen';
 import { codigoCita, codigoComprobante } from '@/lib/codigoCita';
-import { mensajeDeComprobante } from '@/lib/errores';
+import { mensajeDeComprobante, mensajeDeError } from '@/lib/errores';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { calcularSaldo, formatoCOP } from '@/lib/finanzas';
 import { enlaceWhatsApp, mensajeComprobante } from '@/lib/whatsapp';
@@ -58,6 +59,12 @@ function DetalleComprobante({ cita, comprobante }: { cita: Cita; comprobante: Co
   const selector = useElegirImagen();
   const reemplazar = useEnviarComprobante();
   const [errorWhatsApp, setErrorWhatsApp] = useState(false);
+  // Sin conexión la imagen no descarga: se muestra un aviso con Reintentar en vez de un hueco.
+  const [falloImagen, setFalloImagen] = useState(false);
+  const reintentarImagen = () => {
+    setFalloImagen(false);
+    void imagenGuardada.refetch();
+  };
 
   const pendiente = comprobante.estado === 'pendiente';
   const medio = MEDIOS_PAGO.find((m) => m.id === comprobante.metodo)?.nombre ?? null;
@@ -140,15 +147,26 @@ function DetalleComprobante({ cita, comprobante }: { cita: Cita; comprobante: Co
       </View>
 
       <View className="mb-4 rounded-xl border border-borde p-3">
-        {imagenGuardada.data ? (
+        {imagenGuardada.data && !falloImagen ? (
           <Image
+            key={imagenGuardada.dataUpdatedAt}
+            onError={() => setFalloImagen(true)}
             source={imagenGuardada.data}
             contentFit="contain"
             style={{ width: '100%', height: 220 }}
             accessibilityLabel="Comprobante enviado"
           />
-        ) : imagenGuardada.isError ? (
-          <Text className="font-texto text-sm text-secondary">No pudimos cargar la imagen.</Text>
+        ) : imagenGuardada.isError || falloImagen ? (
+          <View className="items-center">
+            <Text className="mb-2 text-center font-texto text-sm text-secondary">
+              {imagenGuardada.isError
+                ? mensajeDeError(imagenGuardada.error)
+                : 'No pudimos cargar la imagen. Revisa tu conexión.'}
+            </Text>
+            <Boton variante="borde" onPress={reintentarImagen}>
+              Reintentar
+            </Boton>
+          </View>
         ) : (
           <ActivityIndicator color="#111111" />
         )}
@@ -188,9 +206,10 @@ function DetalleComprobante({ cita, comprobante }: { cita: Cita; comprobante: Co
             </Boton>
           ) : null}
           {reemplazar.isError ? (
-            <Text className="mb-3 font-texto text-sm text-peligro">
-              {mensajeDeComprobante(reemplazar.error)} Tu comprobante anterior sigue igual.
-            </Text>
+            <AvisoEscritura
+              error={reemplazar.error}
+              mensaje={`${mensajeDeComprobante(reemplazar.error)} Tu comprobante anterior sigue igual.`}
+            />
           ) : null}
           {reemplazar.isSuccess && !selector.imagen ? (
             <Text className="mb-3 font-texto text-sm text-primary">

@@ -5,7 +5,7 @@ import { Alert } from 'react-native';
 
 import { NEGOCIO } from '@/config/negocio';
 import { useMarcarAsistencia } from '@/hooks/useAgenda';
-import { mensajeDeAsistencia } from '@/lib/errores';
+import { mensajeDeAsistencia, tituloDeError } from '@/lib/errores';
 import { formatoCOP } from '@/lib/finanzas';
 import type { CitaAgenda, MarcaAsistencia } from '@/types/entidades';
 
@@ -16,7 +16,7 @@ export const useAsistencia = () => {
     // Sin actualización optimista: la pantalla cambia cuando la base confirma y se recarga.
     marcar.mutate(
       { citaId, estado },
-      { onError: (e) => Alert.alert('No se guardó', mensajeDeAsistencia(e)) },
+      { onError: (e) => Alert.alert(tituloDeError(e), mensajeDeAsistencia(e)) },
     );
 
   const onMarcar = (cita: CitaAgenda, estado: MarcaAsistencia) => {

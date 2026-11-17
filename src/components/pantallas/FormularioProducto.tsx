@@ -18,7 +18,7 @@ import { FOTOS, GESTION } from '@/config/negocio';
 import { useElegirImagen } from '@/hooks/useElegirImagen';
 import { useGuardarProducto, useProductosGestion } from '@/hooks/useGestion';
 import { useIdDeRuta } from '@/hooks/useIdDeRuta';
-import { mensajeDeError, mensajeDeGestion } from '@/lib/errores';
+import { mensajeDeGestion, tituloDeError } from '@/lib/errores';
 import {
   entradaDeProducto,
   validarProducto,
@@ -44,11 +44,13 @@ export default function FormularioProducto() {
   const productos = useProductosGestion();
 
   if (productos.isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando el formulario…" />;
-  if (productos.isError) {
+  // Solo sin datos se cambia el formulario por el error: si falla un refresco (al volver a la
+  // app sin internet) se conservan los datos y no se pierde lo escrito (RN-14).
+  if (productos.data === undefined) {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(productos.error)}
+        error={productos.error}
         onReintentar={() => void productos.refetch()}
       />
     );
@@ -57,12 +59,13 @@ export default function FormularioProducto() {
   const producto = id === '' ? null : (productos.data.find((p) => p.id === id) ?? null);
   if (id !== '' && !producto) {
     return (
-      <View className="flex-1 bg-fondo">
-        <EstadoPantalla tipo="vacio" mensaje="No encontramos ese producto. Puede que el enlace sea viejo." />
-        <Boton variante="borde" className="mx-6 mb-8" onPress={() => router.back()}>
-          Volver a la gestión
-        </Boton>
-      </View>
+      <EstadoPantalla
+        tipo="vacio"
+        icono="search-outline"
+        titulo="No encontramos ese producto"
+        mensaje="Puede que ya no exista o que el enlace esté incompleto."
+        accion={{ texto: 'Volver a la gestión', onPress: () => router.navigate('/panel/gestion') }}
+      />
     );
   }
 
@@ -99,7 +102,7 @@ function Formulario({ producto }: { producto: ProductoGestion | null }) {
           Alert.alert(producto ? 'Producto actualizado' : 'Producto creado', `${r.valor.nombre} quedó guardado.`);
           router.back();
         },
-        onError: (e) => Alert.alert('No se guardó', mensajeDeGestion(e)),
+        onError: (e) => Alert.alert(tituloDeError(e), mensajeDeGestion(e)),
       },
     );
   };

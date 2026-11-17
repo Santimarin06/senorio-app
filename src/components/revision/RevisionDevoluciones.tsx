@@ -8,7 +8,7 @@ import Boton from '@/components/Boton';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import { DatosCita, Fila } from '@/components/revision/PartesRevision';
 import { useDevolucionesPendientes, useRegistrarDevolucion } from '@/hooks/useRevision';
-import { mensajeDeError, mensajeDeRevision } from '@/lib/errores';
+import { mensajeDeRevision, tituloDeError } from '@/lib/errores';
 import { formatoCOP } from '@/lib/finanzas';
 import { desgloseDevolucion, tieneDevolucion } from '@/lib/revision';
 import type { DevolucionPendiente } from '@/types/entidades';
@@ -22,7 +22,7 @@ export default function RevisionDevoluciones() {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(consulta.error)}
+        error={consulta.error}
         onReintentar={() => void consulta.refetch()}
       />
     );
@@ -44,7 +44,7 @@ export default function RevisionDevoluciones() {
           onPress: () =>
             registrar.mutate(
               { citaId: d.cita.id, monto },
-              { onError: (e) => Alert.alert('No se guardó', mensajeDeRevision(e)) },
+              { onError: (e) => Alert.alert(tituloDeError(e), mensajeDeRevision(e)) },
             ),
         },
       ],

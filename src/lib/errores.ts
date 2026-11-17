@@ -13,6 +13,13 @@ export const clasificarError = (error: unknown): TipoError => {
   return 'servidor';
 };
 
+/** La petición no llegó a la base: no hay internet o se agotó el tiempo (RN-14). */
+export const esSinConexion = (error: unknown): boolean => clasificarError(error) === 'sin-conexion';
+
+/** Título de un aviso de error: "Sin conexión" como en el mockup, o el que pida la pantalla. */
+export const tituloDeError = (error: unknown, otro = 'No se guardó'): string =>
+  esSinConexion(error) ? 'Sin conexión' : otro;
+
 export const mensajeDeError = (error: unknown): string => {
   switch (clasificarError(error)) {
     case 'sin-conexion':

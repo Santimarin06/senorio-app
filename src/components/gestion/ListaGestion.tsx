@@ -9,7 +9,7 @@ import Boton from '@/components/Boton';
 import CampoTexto from '@/components/CampoTexto';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import Tarjeta from '@/components/Tarjeta';
-import { mensajeDeGestion } from '@/lib/errores';
+import { mensajeDeGestion, tituloDeError } from '@/lib/errores';
 import { ordenarGestion } from '@/lib/gestion';
 
 export interface ElementoGestion {
@@ -52,7 +52,7 @@ export default function ListaGestion<T extends ElementoGestion>(props: Props<T>)
       try {
         await props.cambiarActivo(e.id, !e.activo);
       } catch (error) {
-        Alert.alert('No se guardó', mensajeDeGestion(error));
+        Alert.alert(tituloDeError(error), mensajeDeGestion(error));
       } finally {
         setCambiando(null);
       }

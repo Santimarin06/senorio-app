@@ -22,7 +22,7 @@ import {
   validarBloqueo,
 } from '@/lib/diasTrabajo';
 import { aBogota, sumarDias } from '@/lib/disponibilidad';
-import { mensajeDeDiasTrabajo, mensajeDeError } from '@/lib/errores';
+import { mensajeDeDiasTrabajo, tituloDeError } from '@/lib/errores';
 import { etiquetaDia, mayuscula } from '@/lib/fechas';
 
 /** Chip "Todo el local": profesional_id null. */
@@ -47,7 +47,7 @@ export default function NuevoBloqueo() {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(profesionales.error)}
+        error={profesionales.error}
         onReintentar={() => void profesionales.refetch()}
       />
     );
@@ -78,7 +78,7 @@ export default function NuevoBloqueo() {
         { profesionalId, inicio: validacion.inicio, fin: validacion.fin, motivo: validacion.motivo },
         {
           onSuccess: () => router.back(),
-          onError: (e) => Alert.alert('No se guardó', mensajeDeDiasTrabajo(e)),
+          onError: (e) => Alert.alert(tituloDeError(e), mensajeDeDiasTrabajo(e)),
         },
       );
     if (dentro.length === 0) return ejecutar();

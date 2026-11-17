@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, ScrollView, Text, View } from 'react-native';
 
+import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import PantallaPendiente from '@/components/PantallaPendiente';
@@ -60,7 +61,7 @@ export default function ReagendarCita({ cita }: { cita: Cita }) {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(multa.error)}
+        error={multa.error}
         onReintentar={() => void multa.refetch()}
       />
     );
@@ -187,7 +188,7 @@ export default function ReagendarCita({ cita }: { cita: Cita }) {
         </View>
 
         {reagendar.isError ? (
-          <Text className="mb-2 font-texto text-sm text-peligro">{mensajeDeReagendar(reagendar.error)}</Text>
+          <AvisoEscritura error={reagendar.error} mensaje={mensajeDeReagendar(reagendar.error)} />
         ) : null}
         <Boton disabled={!seleccionLibre || esMismoHorario} cargando={ocupado} onPress={confirmar}>
           {reagendar.isError ? 'Reintentar cambio' : 'Confirmar cambio de horario'}
@@ -212,6 +213,7 @@ function ReagendamientoHecho({ cita, resultado }: { cita: Cita; resultado: Resul
     return (
       <EstadoPantalla
         tipo="error"
+        error={nueva.error}
         mensaje={`Tu cita quedó reagendada (${codigoCita(resultado.citaId)}), pero no pudimos cargarla. ${nueva.isError ? mensajeDeError(nueva.error) : ''}`}
         onReintentar={() => void nueva.refetch()}
       />
