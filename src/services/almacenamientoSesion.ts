@@ -48,7 +48,9 @@ const esUsuario = (v: unknown): v is Usuario =>
   v !== null &&
   typeof (v as Usuario).id === 'string' &&
   typeof (v as Usuario).nombre === 'string' &&
-  ROLES.includes((v as Usuario).rol);
+  ROLES.includes((v as Usuario).rol) &&
+  // Una sesión guardada antes de existir profesionalId se descarta: se vuelve a iniciar sesión.
+  (typeof (v as Usuario).profesionalId === 'string' || (v as Usuario).profesionalId === null);
 
 const parsear = (texto: string | null): unknown => {
   if (!texto) return null;

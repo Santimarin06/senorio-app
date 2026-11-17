@@ -1,10 +1,6 @@
-import PantallaPendiente from '@/components/PantallaPendiente';
+import MiAgenda from '@/components/pantallas/MiAgenda';
 
+// RF-21 y RF-23: agenda del día y de la semana, con la asistencia.
 export default function MiAgendaScreen() {
-  return (
-    <PantallaPendiente
-      icono="calendar-outline"
-      mensaje="Tu agenda del día y de la semana (RF-21) y la asistencia (RF-23) llegan en la siguiente entrega."
-    />
-  );
+  return <MiAgenda />;
 }

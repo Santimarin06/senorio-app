@@ -9,6 +9,8 @@ export interface Usuario {
   rol: Rol;
   correo: string;
   telefono: string;
+  /** Ficha del profesional (tabla profesionales) si el rol es profesional; si no, null. */
+  profesionalId: string | null;
 }
 
 /** Tokens de Supabase Auth. expiraEn es un instante en milisegundos (Date.now()). */

@@ -6,6 +6,7 @@ import { ScrollView, Text, View } from 'react-native';
 import Boton from '@/components/Boton';
 import ConCita from '@/components/pantallas/ConCita';
 import { useIdDeRuta } from '@/hooks/useIdDeRuta';
+import { estadoVisible } from '@/lib/agenda';
 import { puedeCancelar } from '@/lib/cancelacion';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { calcularSaldo, formatoCOP } from '@/lib/finanzas';
@@ -28,7 +29,7 @@ export default function DetalleCitaScreen() {
               {formatoFechaHoraBogota(cita.inicio)}
             </Text>
             <Text className="mt-1 font-texto text-base text-primary">
-              Estado: {ETIQUETA_ESTADO[cita.estado]}
+              Estado: {ETIQUETA_ESTADO[estadoVisible(cita, Date.now())]}
             </Text>
             <Text className="font-texto text-base text-primary">
               Anticipo: {ETIQUETA_ANTICIPO[cita.anticipo.estado]}

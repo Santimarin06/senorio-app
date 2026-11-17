@@ -79,8 +79,22 @@ describe('tokens', () => {
 
   it('mapPerfil trata un rol desconocido como cliente', () => {
     expect(
-      mapPerfil({ id: '1', nombre: '', telefono: null, correo: 'a@b.co', rol: 'superusuario' }),
-    ).toEqual({ id: '1', nombre: 'Cliente', rol: 'cliente', correo: 'a@b.co', telefono: '' });
+      mapPerfil({
+        id: '1',
+        nombre: '',
+        telefono: null,
+        correo: 'a@b.co',
+        rol: 'superusuario',
+        profesional_id: 'p1',
+      }),
+    ).toEqual({
+      id: '1',
+      nombre: 'Cliente',
+      rol: 'cliente',
+      correo: 'a@b.co',
+      telefono: '',
+      profesionalId: null,
+    });
   });
 });
 

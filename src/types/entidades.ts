@@ -61,6 +61,24 @@ export interface Cita {
   anticipo: Anticipo;
 }
 
+/** Cita vista desde el panel (RF-21, RF-22): con el cliente y sin el detalle del comprobante. */
+export interface CitaAgenda {
+  id: string;
+  inicio: string;
+  fin: string;
+  estado: EstadoCita;
+  total: number;
+  profesionalId: string;
+  profesional: string;
+  cliente: { nombre: string; telefono: string };
+  servicios: { nombre: string; precio: number; duracionMin: number }[];
+  /** Suma de los comprobantes aprobados (RN-09); 0 si no hay anticipo aprobado. */
+  anticipoAprobado: number;
+}
+
+/** Marca de asistencia que pone el profesional o el administrador (RF-23). */
+export type MarcaAsistencia = Extract<EstadoCita, 'asistida' | 'no_asistida'>;
+
 /** Anticipo de la cita (RF-13): abono entre $10.000 y el total, o el total. */
 export type TipoAnticipo = 'abono' | 'total';
 
