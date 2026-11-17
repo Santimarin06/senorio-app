@@ -57,6 +57,38 @@ export interface Cita {
   servicios: { nombre: string; precio: number; duracionMin: number }[];
   /** Suma de los comprobantes aprobados por el administrador (RN-09). */
   anticipoAprobado: number;
+  /** Estado del anticipo y el comprobante que lo respalda (D-15). */
+  anticipo: Anticipo;
+}
+
+/** Anticipo de la cita (RF-13): abono entre $10.000 y el total, o el total. */
+export type TipoAnticipo = 'abono' | 'total';
+
+/** Medios de pago de MEDIOS_PAGO (D-04). */
+export type MedioPago = 'nequi' | 'bold' | 'bancolombia';
+
+export type EstadoComprobante = 'pendiente' | 'aprobado' | 'rechazado';
+
+/** Estados del anticipo (D-15). */
+export type EstadoAnticipo = 'sin_anticipo' | EstadoComprobante;
+
+export interface Comprobante {
+  id: string;
+  tipo: TipoAnticipo;
+  monto: number;
+  estado: EstadoComprobante;
+  notaRechazo: string | null;
+  /** Ruta en el bucket privado: <cliente_id>/<archivo>. */
+  archivoPath: string;
+  metodo: MedioPago | null;
+  /** Instante UTC (ISO) en que se subió la imagen vigente. */
+  subidoEn: string;
+}
+
+export interface Anticipo {
+  estado: EstadoAnticipo;
+  /** El comprobante vigente o, si no hay, el rechazado más reciente; null sin anticipo. */
+  comprobante: Comprobante | null;
 }
 
 export type EstadoMulta = 'pendiente' | 'cobrada_anticipo' | 'pagada' | 'perdonada';
@@ -77,4 +109,14 @@ export interface OcupacionSemana {
   festivos: string[];
   /** Fechas con horario especial (dias_habilitados), en minutos desde medianoche. */
   especiales: { fecha: string; abierto: boolean; abreMin: number; cierraMin: number }[];
+}
+
+/** Imagen elegida para el comprobante, ya leída y validada (JPG o PNG de hasta 5 MB). */
+export interface ImagenComprobante {
+  /** Archivo local del teléfono, para la vista previa. */
+  uri: string;
+  nombre: string;
+  bytes: ArrayBuffer;
+  mime: 'image/jpeg' | 'image/png';
+  tamano: number;
 }

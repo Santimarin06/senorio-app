@@ -9,7 +9,7 @@ import { useIdDeRuta } from '@/hooks/useIdDeRuta';
 import { puedeCancelar } from '@/lib/cancelacion';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { calcularSaldo, formatoCOP } from '@/lib/finanzas';
-import { ETIQUETA_ESTADO } from '@/models/cita.mapper';
+import { ETIQUETA_ANTICIPO, ETIQUETA_ESTADO } from '@/models/cita.mapper';
 
 export default function DetalleCitaScreen() {
   const id = useIdDeRuta('id');
@@ -19,13 +19,19 @@ export default function DetalleCitaScreen() {
       {(cita) => {
         const vigente = cita.estado === 'confirmada' && Date.parse(cita.inicio) > Date.now();
         const saldo = calcularSaldo(cita.total, cita.anticipoAprobado);
+        const conComprobante = cita.anticipo.estado !== 'sin_anticipo';
 
         return (
           <ScrollView className="flex-1 bg-fondo" contentContainerStyle={{ padding: 24 }}>
             <Text className="font-titulo text-xl text-primary">{cita.profesional}</Text>
-            <Text className="font-texto text-base text-secondary">{formatoFechaHoraBogota(cita.inicio)}</Text>
+            <Text className="font-texto text-base text-secondary">
+              {formatoFechaHoraBogota(cita.inicio)}
+            </Text>
             <Text className="mt-1 font-texto text-base text-primary">
               Estado: {ETIQUETA_ESTADO[cita.estado]}
+            </Text>
+            <Text className="font-texto text-base text-primary">
+              Anticipo: {ETIQUETA_ANTICIPO[cita.anticipo.estado]}
             </Text>
 
             <View className="my-6 rounded-xl border border-borde p-4">
@@ -41,7 +47,9 @@ export default function DetalleCitaScreen() {
               </View>
               <View className="flex-row justify-between">
                 <Text className="font-texto text-base text-secondary">Anticipo aprobado</Text>
-                <Text className="font-texto text-base text-secondary">{formatoCOP(cita.anticipoAprobado)}</Text>
+                <Text className="font-texto text-base text-secondary">
+                  {formatoCOP(cita.anticipoAprobado)}
+                </Text>
               </View>
               <View className="flex-row justify-between">
                 <Text className="font-texto text-base text-primary">Saldo por pagar</Text>
@@ -51,11 +59,17 @@ export default function DetalleCitaScreen() {
 
             {vigente ? (
               <>
+                {/* RF-13: con un comprobante enviado se va a su estado; si no, a pagar el anticipo. */}
                 <Boton
                   className="mb-3"
-                  onPress={() => router.push({ pathname: '/cita/[id]/anticipo', params: { id } })}
+                  onPress={() =>
+                    router.push({
+                      pathname: conComprobante ? '/cita/[id]/comprobante' : '/cita/[id]/anticipo',
+                      params: { id },
+                    })
+                  }
                 >
-                  Anticipo
+                  {conComprobante ? 'Ver comprobante' : 'Pagar anticipo'}
                 </Boton>
                 <Boton
                   variante="borde"

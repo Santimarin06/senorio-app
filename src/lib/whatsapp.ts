@@ -80,5 +80,27 @@ export function mensajeCotizacion(d: DatosCotizacion): string {
   ].join('\n');
 }
 
+export interface DatosAvisoComprobante {
+  codigoCita: string;
+  codigoComprobante: string;
+  tipo: 'abono' | 'total';
+  monto: number;
+  /** Nombre del medio de pago, por ejemplo "Nequi"; null si no se registró. */
+  medio: string | null;
+}
+
+/**
+ * RF-13: aviso del comprobante ya guardado en la app. WhatsApp no recibe la imagen desde el
+ * enlace: el cliente la adjunta en el chat.
+ */
+export function mensajeComprobante(d: DatosAvisoComprobante): string {
+  return [
+    `Hola, ${NEGOCIO.nombre}. Subí en la app el comprobante ${d.codigoComprobante} de mi cita ${d.codigoCita}.`,
+    `${d.tipo === 'total' ? 'Pago total' : 'Abono'}: ${formatoCOP(d.monto)}`,
+    ...(d.medio ? [`Medio: ${d.medio}`] : []),
+    'Adjunto la imagen del comprobante en este chat.',
+  ].join('\n');
+}
+
 export const enlaceWhatsApp = (mensaje: string): string =>
   `https://wa.me/${NEGOCIO.whatsapp}?text=${encodeURIComponent(mensaje)}`;

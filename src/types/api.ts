@@ -46,7 +46,19 @@ export interface CitaRespuesta {
   /** Servicios con el precio del momento de reservar (cita_servicios). */
   cita_servicios?: { nombre: string; precio: number; duracion_min: number }[] | null;
   /** Comprobantes del anticipo; solo los aprobados cuentan como pagados (RN-09). */
-  comprobantes?: { monto: number; estado: string }[] | null;
+  comprobantes?: ComprobanteRespuesta[] | null;
+}
+
+/** Fila de comprobantes (RF-13), embebida en la cita. */
+export interface ComprobanteRespuesta {
+  id: string;
+  tipo: string;
+  monto: number;
+  estado: string;
+  nota_rechazo: string | null;
+  archivo_path: string;
+  metodo: string | null;
+  subido_en: string;
 }
 
 /** Respuesta de la función cancelar_cita (RF-09): lo que quedó guardado en la base. */

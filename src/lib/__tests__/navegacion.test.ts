@@ -39,9 +39,13 @@ describe('navegación por rol', () => {
 
 describe('formatoFechaHoraBogota', () => {
   it('convierte de UTC a hora de Bogotá (UTC-5)', () => {
-    expect(formatoFechaHoraBogota('2026-11-16T20:30:00Z')).toBe('lunes 16 de noviembre, 3:30 p. m.');
+    expect(formatoFechaHoraBogota('2026-11-16T20:30:00Z')).toBe(
+      'lunes 16 de noviembre, 3:30 p. m.',
+    );
     // 02:00 UTC del martes sigue siendo lunes en Bogotá.
-    expect(formatoFechaHoraBogota('2026-11-17T02:00:00Z')).toBe('lunes 16 de noviembre, 9:00 p. m.');
+    expect(formatoFechaHoraBogota('2026-11-17T02:00:00Z')).toBe(
+      'lunes 16 de noviembre, 9:00 p. m.',
+    );
     expect(formatoFechaHoraBogota('2026-11-16T17:00:00Z')).toBe('lunes 16 de noviembre, 12:00 m.');
   });
 
@@ -51,6 +55,16 @@ describe('formatoFechaHoraBogota', () => {
 });
 
 describe('mapCita', () => {
+  const comprobante = (id: string, monto: number, estado: string) => ({
+    id,
+    tipo: 'abono',
+    monto,
+    estado,
+    nota_rechazo: null,
+    archivo_path: `cli/${id}.jpg`,
+    metodo: 'nequi',
+    subido_en: '2026-11-15T15:00:00Z',
+  });
   const base = {
     id: '1',
     inicio: '2026-11-16T20:30:00Z',
@@ -70,6 +84,7 @@ describe('mapCita', () => {
       profesional: 'Mario',
       servicios: [],
       anticipoAprobado: 0,
+      anticipo: { estado: 'sin_anticipo', comprobante: null },
     });
   });
 
@@ -84,13 +99,44 @@ describe('mapCita', () => {
       ...base,
       cita_servicios: [{ nombre: 'Corte', precio: 25000, duracion_min: 40 }],
       comprobantes: [
-        { monto: 10000, estado: 'aprobado' },
-        { monto: 15000, estado: 'pendiente' },
-        { monto: 5000, estado: 'rechazado' },
+        comprobante('a', 10000, 'aprobado'),
+        comprobante('b', 15000, 'pendiente'),
+        comprobante('c', 5000, 'rechazado'),
       ],
     });
     expect(cita.servicios).toEqual([{ nombre: 'Corte', precio: 25000, duracionMin: 40 }]);
     expect(cita.anticipoAprobado).toBe(10000);
+  });
+
+  it('estado del anticipo: pendiente no cuenta como pagado y el rechazado trae su nota (RN-09)', () => {
+    const pendiente = mapCita({ ...base, comprobantes: [comprobante('b', 15000, 'pendiente')] });
+    expect(pendiente.anticipo.estado).toBe('pendiente');
+    expect(pendiente.anticipoAprobado).toBe(0);
+    expect(pendiente.anticipo.comprobante).toEqual({
+      id: 'b',
+      tipo: 'abono',
+      monto: 15000,
+      estado: 'pendiente',
+      notaRechazo: null,
+      archivoPath: 'cli/b.jpg',
+      metodo: 'nequi',
+      subidoEn: '2026-11-15T15:00:00Z',
+    });
+
+    const rechazado = mapCita({
+      ...base,
+      comprobantes: [
+        { ...comprobante('c', 5000, 'rechazado'), nota_rechazo: 'Ilegible', metodo: 'otro' },
+      ],
+    });
+    expect(rechazado.anticipo.estado).toBe('rechazado');
+    expect(rechazado.anticipo.comprobante?.notaRechazo).toBe('Ilegible');
+    expect(rechazado.anticipo.comprobante?.metodo).toBeNull();
+
+    // Un estado desconocido no se toma como aprobado.
+    expect(
+      mapCita({ ...base, comprobantes: [comprobante('d', 9000, 'raro')] }).anticipoAprobado,
+    ).toBe(0);
   });
 });
 
@@ -104,6 +150,7 @@ describe('separarCitas (RF-08)', () => {
     profesional: 'Mario',
     servicios: [],
     anticipoAprobado: 0,
+    anticipo: { estado: 'sin_anticipo', comprobante: null },
   });
   const ahora = Date.parse('2026-11-17T15:00:00Z');
 
