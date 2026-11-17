@@ -82,10 +82,6 @@ const textoDeRegla = (error: unknown): string | null => {
   return regla?.[1] ? regla[1].charAt(0).toUpperCase() + regla[1].slice(1) : null;
 };
 
-/** cancelar_cita rechazó porque la cita ya cambió de estado o ya empezó (RF-09). */
-export const esCitaNoCancelable = (error: unknown): boolean =>
-  (cuerpo(error)?.message ?? '').startsWith('RF-09');
-
 /** Mensaje de cancelar_cita. Sin conexión se aclara que la cita no cambió (RN-14). */
 export const mensajeDeCancelacion = (error: unknown): string => {
   switch (clasificarError(error)) {
