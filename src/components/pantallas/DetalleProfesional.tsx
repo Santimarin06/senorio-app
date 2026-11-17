@@ -2,13 +2,14 @@
 // Si el id no existe se muestra "Profesional no encontrado" (SRS §7), no un Redirect.
 import { Ionicons } from '@expo/vector-icons';
 import { router, useNavigation } from 'expo-router';
-import { useEffect } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import Boton from '@/components/Boton';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import Tarjeta from '@/components/Tarjeta';
 import { useProfesional } from '@/hooks/useProfesionales';
+import { filtrarPorTexto } from '@/lib/busqueda';
 import { formatoCOP } from '@/lib/dinero';
 import { mensajeDeError } from '@/lib/errores';
 import { faltaServicioPrincipal, totalSeleccion } from '@/lib/reserva';
@@ -20,6 +21,13 @@ export default function DetalleProfesional({ id }: { id: string }) {
   const elegirProfesional = useReservaStore((s) => s.elegirProfesional);
   const seleccionados = useReservaStore((s) => s.servicios);
   const alternarServicio = useReservaStore((s) => s.alternarServicio);
+  const [consulta, setConsulta] = useState('');
+
+  // RF-11: los servicios elegidos siguen en el total aunque la búsqueda los oculte.
+  const serviciosFiltrados = useMemo(
+    () => filtrarPorTexto(profesional?.servicios ?? [], consulta, (s) => [s.nombre, s.descripcion]),
+    [profesional, consulta],
+  );
 
   useEffect(() => {
     if (profesional) {
@@ -54,16 +62,43 @@ export default function DetalleProfesional({ id }: { id: string }) {
   return (
     <View className="flex-1 bg-fondo">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Tarjeta titulo={profesional.nombre} subtitulo={profesional.cargo} imagen={profesional.foto} />
+        <Tarjeta
+          titulo={profesional.nombre}
+          subtitulo={profesional.cargo}
+          imagen={profesional.foto}
+        />
 
-        <Text className="mb-2 mt-2 font-texto text-lg text-primary">Elige uno o varios servicios</Text>
+        <Text className="mb-2 mt-2 font-texto text-lg text-primary">
+          Elige uno o varios servicios
+        </Text>
+
+        {profesional.servicios.length > 0 ? (
+          <TextInput
+            value={consulta}
+            onChangeText={setConsulta}
+            placeholder={`Buscar un servicio de ${profesional.nombre}`}
+            placeholderTextColor="#9A9A9A"
+            className="mb-3 rounded-lg border border-borde px-4 py-3 font-texto text-base text-primary"
+            accessibilityLabel="Buscar un servicio"
+          />
+        ) : null}
 
         {profesional.servicios.length === 0 ? (
           <Text className="font-texto text-base text-secondary">
             Este profesional todavía no tiene servicios disponibles.
           </Text>
+        ) : serviciosFiltrados.length === 0 ? (
+          <View className="items-center py-6">
+            <Ionicons name="search-outline" size={40} color="#9A9A9A" />
+            <Text className="my-3 text-center font-texto text-base text-secondary">
+              Ningún servicio coincide con &quot;{consulta}&quot;.
+            </Text>
+            <Boton variante="borde" onPress={() => setConsulta('')}>
+              Limpiar búsqueda
+            </Boton>
+          </View>
         ) : (
-          profesional.servicios.map((servicio) => {
+          serviciosFiltrados.map((servicio) => {
             const elegido = seleccionados.some((s) => s.id === servicio.id);
             return (
               <Pressable
@@ -89,7 +124,9 @@ export default function DetalleProfesional({ id }: { id: string }) {
                     {servicio.duracionMin > 0 ? `${servicio.duracionMin} min` : 'Sin tiempo extra'}
                   </Text>
                 </View>
-                <Text className="font-texto text-base text-primary">{formatoCOP(servicio.precio)}</Text>
+                <Text className="font-texto text-base text-primary">
+                  {formatoCOP(servicio.precio)}
+                </Text>
               </Pressable>
             );
           })
