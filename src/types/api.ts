@@ -148,3 +148,40 @@ export interface ErrorApiRespuesta {
   code?: string;
   message?: string;
 }
+
+/** Cita embebida en las consultas de revisión (RF-25, RF-28). */
+export interface CitaRevisionRespuesta {
+  id: string;
+  inicio: string;
+  estado: string;
+  total: number;
+  profesionales: { nombre: string } | null;
+}
+
+/** Comprobante con su cliente (perfiles!cliente_id) y su cita, para la revisión. */
+export interface ComprobanteRevisionRespuesta {
+  id: string;
+  tipo: string;
+  monto: number;
+  metodo: string | null;
+  subido_en: string;
+  archivo_path: string;
+  cliente: { nombre: string; telefono: string | null } | null;
+  citas: CitaRevisionRespuesta | null;
+}
+
+/** Multa con su cliente y su cita (RF-25). */
+export interface MultaRevisionRespuesta {
+  id: string;
+  motivo: string;
+  monto: number;
+  estado: string;
+  resuelta_en: string | null;
+  cliente: { nombre: string } | null;
+  citas: CitaRevisionRespuesta | null;
+}
+
+/** Respuesta de POST /storage/v1/object/sign/<bucket>/<ruta>: ruta relativa con el token. */
+export interface UrlFirmadaRespuesta {
+  signedURL: string;
+}

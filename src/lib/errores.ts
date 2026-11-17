@@ -168,3 +168,29 @@ export const mensajeDeDiasTrabajo = (error: unknown): string => {
     }
   }
 };
+
+/**
+ * Mensaje al confirmar o rechazar un comprobante, resolver una multa o registrar una
+ * devolución (RF-25, RF-28). Aclara que nada cambió, porque la pantalla solo muestra lo que
+ * la base confirmó (RN-12, RN-14).
+ */
+export const mensajeDeRevision = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. No se guardó nada; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default: {
+      const c = cuerpo(error);
+      // RLS o permisos de columna: solo el administrador revisa.
+      if (c?.code === '42501') return 'Solo el administrador puede hacer esta revisión.';
+      // Check devolucion_monto <= monto.
+      if (c?.code === '23514') return 'La devolución no puede superar el anticipo.';
+      const regla = textoDeRegla(error);
+      if (regla) return regla;
+      // Errores propios del servicio: otra persona ya lo resolvió.
+      if (error instanceof Error && / ya (fue|estaba) /.test(error.message)) return error.message;
+      return 'No pudimos guardar el cambio. Nada cambió; inténtalo de nuevo.';
+    }
+  }
+};

@@ -1,10 +1,6 @@
-import PantallaPendiente from '@/components/PantallaPendiente';
+import Revision from '@/components/pantallas/Revision';
 
+// RF-25 y RF-28: comprobantes, multas y devoluciones por resolver.
 export default function RevisionScreen() {
-  return (
-    <PantallaPendiente
-      icono="checkmark-done-outline"
-      mensaje="La revisión de multas (RF-25), comprobantes y devoluciones (RF-28) llega en la siguiente entrega."
-    />
-  );
+  return <Revision />;
 }
