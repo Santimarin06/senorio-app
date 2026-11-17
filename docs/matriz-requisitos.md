@@ -1,6 +1,6 @@
 # Matriz de requisitos
 
-Relaciona cada requisito obligatorio de los lineamientos de Móvil II (§3 a §6 y §8) con la función del negocio, la pantalla, el archivo y la evidencia (lineamientos §2; SRS §6). Se armó leyendo el código el **17 nov 2026** (rama `chore/p14-rubrica`), no desde el plan.
+Relaciona cada requisito obligatorio de los lineamientos de Móvil II (§3 a §6 y §8) con la función del negocio, la pantalla, el archivo y la evidencia (lineamientos §2; SRS §6). Se armó leyendo el código el **17 nov 2026** (rama `chore/p14-rubrica`) y se actualizó el mismo día en la rama `chore/p15-entrega` (dirección, APK y documentos de entrega), no desde el plan.
 
 - **Listo**: el archivo existe, se importa y se usa, y hay una prueba automática o un paso exacto para verlo.
 - **Parcial**: una parte está y otra falta (se dice qué).
@@ -35,17 +35,18 @@ Relaciona cada requisito obligatorio de los lineamientos de Móvil II (§3 a §6
 | Datos remotos en el flujo principal (§4) | Catálogo, franjas ocupadas, reserva por RPC `reservar_cita` | `/reservar/*` | `disponibilidad.api.ts`, `citas.api.ts`, `supabase/migrations/20261115120000_reservas_y_roles.sql` | En el teléfono: reservar y ver la cita en Citas | Listo |
 | Conservación tras cerrar y abrir la app; mecanismo y límites documentados (§4) | Citas, anticipos, multas, catálogo en Supabase; sesión en SecureStore | `/citas`, `/cuenta` | `supabase/migrations/`, `src/services/almacenamientoSesion.ts`, `src/lib/sesion.ts` | README (Conservación de los datos); `supabase/pruebas/*.sql`; en el teléfono: cerrar desde recientes y volver a abrir | Listo |
 | Restricción de doble reserva en la base (SRS, RN-02) | Dos clientes no reservan la misma franja | `/reservar/resumen` | `citas_sin_solapamiento` (`EXCLUDE USING gist`) | `supabase/pruebas/reagendar.sql` (caso 4) | Listo |
-| Mapa OSM + Leaflet en WebView con el marcador del local (§5, RF-12) | Ver dónde está la barbería | `/mapa` (Drawer > El local) | `src/components/mapa/MapaLeaflet.tsx`, `MapaLocal.tsx`, `UBICACION_LOCAL` en `negocio.ts` (D-03) | En el teléfono: abrir El local | Listo (falta la dirección, dato del cliente) |
+| Mapa OSM + Leaflet en WebView con el marcador del local (§5, RF-12) | Ver dónde está la barbería | `/mapa` (Drawer > El local) | `src/components/mapa/MapaLeaflet.tsx`, `MapaLocal.tsx`, `UBICACION_LOCAL` y `NEGOCIO.direccion` en `negocio.ts` (D-03, D-51) | En el teléfono: abrir El local; bajo el mapa se lee "Cra. 10 #25B-81, Pereira, Risaralda" | Listo |
 | Permiso en primer plano; ubicación del local frente a la del dispositivo (§5) | — | `/mapa` | `src/hooks/usePermisoUbicacion.ts`, `src/services/ubicacion/permisos.ts` | En el teléfono: denegar, bloquear y volver desde Ajustes | Listo |
 | Centrar ubicación; activar, pausar y reanudar seguimiento (§5) | — | `/mapa` | `MapaLocal.tsx`, `src/store/useUbicacionStore.ts` | `src/store/__tests__/useUbicacionStore.test.ts`; en el teléfono: los cuatro botones | Listo |
 | Permiso denegado, regreso desde ajustes, GPS apagado y fallo de carga (§5) | Las demás secciones siguen sin GPS | `/mapa` | `MapaLocal.tsx`, `MapaLeaflet.tsx` (Reintentar) | En el teléfono: GPS apagado y modo avión | Listo |
 | Liberar suscripciones al salir (§5) | No seguir la ubicación fuera del mapa | `/mapa` | `useFocusEffect` en `MapaLocal.tsx`; `generacion` en `useUbicacionStore.ts` (salir mientras llega la suscripción) | `src/store/__tests__/useUbicacionStore.test.ts` | Listo |
 | Sin conexión: aviso y sin confirmaciones falsas; recuperación (§6, RN-12, RN-14) | Reservar, cancelar, pagar y listas sin red | Todas | `src/lib/errores.ts`, `AvisoEscritura.tsx`, `EstadoPantalla.tsx`, `src/lib/reconexion.ts`, `focusManager` en `src/app/_layout.tsx` (D-49) | `reconexion.test.ts`; en el teléfono: modo avión en una lista y al confirmar una reserva | Listo |
 | Proceso principal completo con datos representativos (§6) | Reservar → anticipo → confirmar comprobante → asistencia o cancelación | Cliente y panel | Ver `docs/estado.md` (RF-01 a RF-30) | README (Probar el proceso principal); 306 pruebas de Jest y 10 pruebas SQL | Listo (sin probar de punta a punta en un Android real) |
-| Forma reproducible de ejecutar en Android (§6) | — | — | `README.md` | Instrucciones con Expo Go; no hay APK | Listo |
+| Forma reproducible de ejecutar en Android (§6) | Instalar la app sin el computador | — | `README.md` (Ejecutar en Android y Generar el APK), `eas.json` (perfil `apk`), `app.json` (`android.package` `com.senoriobarber.app`) | Instrucciones con Expo Go; `eas build -p android --profile apk` genera el instalador (D-51). El APK aún no se ha generado | Parcial (falta generar e instalar el APK) |
 | `.env.template` sin claves y explicado; sin credenciales en el repo (§6) | — | — | `.env.template`, `.gitignore` (`.env`, `node_modules/`) | `git ls-files` no incluye `.env` ni `node_modules` | Listo |
-| Prueba con el cliente o usuario representativo y un ajuste derivado (§6, §8) | — | — | — | Pendiente: registrar tarea, resultado, dificultades y ajuste en el informe §9 | Pendiente |
+| Prueba con el cliente o usuario representativo y un ajuste derivado (§6, §8) | — | — | `docs/prueba-cliente.md` (plantilla) | Plantilla lista; la prueba aún no se ha hecho | Pendiente |
 | README, informe y bitácora (§7, §8) | — | — | `README.md`, `docs/informe.md`, `docs/bitacora.md`, esta matriz | — | Parcial (la bitácora necesita las observaciones del docente; falta la prueba con el cliente) |
+| Sustentación: navegación, estado, hook propio, peticiones, mapper, cálculos y permisos (§8) | — | — | `docs/sustentacion.md` (guion con archivo y función de cada tema y 10 cambios en vivo) | Ensayar los 10 cambios con `npx tsc --noEmit` y `npx jest` después de cada uno | Listo |
 
 ## Requisitos recortados o fuera de alcance
 
@@ -55,5 +56,5 @@ Relaciona cada requisito obligatorio de los lineamientos de Móvil II (§3 a §6
 
 ## Resumen
 
-- 36 Listo, 1 Parcial y 1 Pendiente.
-- Huecos con más peso en la rúbrica: (1) la prueba con el cliente y su ajuste (criterio 7 y proceso principal); (2) probar en un Android real el proceso completo y el mapa; (3) volver a correr `supabase/pruebas/reagendar.sql` y `dias_trabajo.sql` para cerrar RF-14, RN-15 y RN-16.
+- 36 Listo, 2 Parcial y 1 Pendiente (39 filas).
+- Huecos con más peso en la rúbrica: (1) la prueba con el cliente y su ajuste (criterio 7 y proceso principal); (2) generar el APK y probar con él, en un Android real, el proceso completo y el mapa; (3) volver a correr `supabase/pruebas/reagendar.sql` y `dias_trabajo.sql` para cerrar RF-14, RN-15 y RN-16.

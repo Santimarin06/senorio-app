@@ -8,6 +8,8 @@ export const NEGOCIO = {
   nombre: 'Señorío Barber',
   /** WhatsApp de la barbería, con indicativo 57 (RN-12). */
   whatsapp: '573189773741',
+  /** Dirección del local (D-51). Las coordenadas del mapa están en UBICACION_LOCAL (D-03). */
+  direccion: 'Cra. 10 #25B-81, Pereira, Risaralda',
 
   toleranciaMinutos: 10,
   horasMinimasCancelarSinMulta: 4,
