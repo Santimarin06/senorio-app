@@ -15,6 +15,9 @@ export default function AppDrawerLayout() {
   return (
     <Drawer
       drawerContent={CustomDrawer}
+      // Atrás vuelve a la pantalla anterior: de Política o Privacidad a la Cuenta, el Perfil o
+      // el resumen de la reserva desde donde se abrieron (D-44).
+      backBehavior="history"
       screenOptions={{
         headerShadowVisible: false,
         headerTitleStyle: { fontFamily: 'Oswald' },

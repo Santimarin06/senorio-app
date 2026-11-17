@@ -90,7 +90,10 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
       <PantallaPendiente
         icono="alert-circle-outline"
         mensaje={`Tienes una multa pendiente de ${formatoCOP(multa.data)}. Hasta pagarla o que el local la perdone no puedes enviar anticipos ni hacer reservas nuevas.`}
-        acciones={[{ texto: 'Volver a la cita', onPress: volver }]}
+        acciones={[
+          { texto: 'Ver mi multa', onPress: () => router.navigate('/cuenta') },
+          { texto: 'Volver a la cita', onPress: volver },
+        ]}
       />
     );
   }

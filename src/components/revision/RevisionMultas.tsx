@@ -6,19 +6,13 @@ import { Alert, Text, View } from 'react-native';
 import Boton from '@/components/Boton';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import { DatosCita } from '@/components/revision/PartesRevision';
-import { NEGOCIO } from '@/config/negocio';
 import { useHistorialMultas, useMultasPendientes, useResolverMulta } from '@/hooks/useRevision';
 import { mensajeDeError, mensajeDeRevision } from '@/lib/errores';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { formatoCOP } from '@/lib/finanzas';
-import { ETIQUETA_MULTA } from '@/models/revision.mapper';
+import { ETIQUETA_MULTA, MOTIVO_MULTA } from '@/models/revision.mapper';
 import type { Resolucion } from '@/services/revision.api';
-import type { MotivoMulta, MultaRevision } from '@/types/entidades';
-
-const MOTIVO: Record<MotivoMulta, string> = {
-  no_asistio: 'No asistió',
-  cancelo_tarde: `Canceló con menos de ${NEGOCIO.horasMinimasCancelarSinMulta} h`,
-};
+import type { MultaRevision } from '@/types/entidades';
 
 export default function RevisionMultas() {
   const pendientes = useMultasPendientes();
@@ -68,7 +62,7 @@ export default function RevisionMultas() {
               </View>
               <DatosCita cita={m.cita} />
               <Text className="mt-2 font-texto text-base text-primary">
-                {MOTIVO[m.motivo]}; sin anticipo aprobado.
+                {MOTIVO_MULTA[m.motivo]}; sin anticipo aprobado.
               </Text>
               <Text className="font-texto text-sm text-secondary">
                 Mientras esté pendiente, no puede reservar ni pagar anticipos. Perdonarla o marcarla
@@ -135,7 +129,7 @@ function HistorialMultas() {
             </View>
             <DatosCita cita={m.cita} />
             <Text className="font-texto text-sm text-primary">
-              {MOTIVO[m.motivo]} · {ETIQUETA_MULTA[m.estado]}
+              {MOTIVO_MULTA[m.motivo]} · {ETIQUETA_MULTA[m.estado]}
               {m.resueltaEn ? ` · ${formatoFechaHoraBogota(m.resueltaEn)}` : ''}
             </Text>
           </View>

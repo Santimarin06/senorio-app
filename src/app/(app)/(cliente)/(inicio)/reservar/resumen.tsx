@@ -85,6 +85,9 @@ export default function ResumenScreen() {
           • {punto}
         </Text>
       ))}
+      <Pressable onPress={() => router.navigate('/politica')} accessibilityRole="link" hitSlop={8}>
+        <Text className="font-texto text-sm text-primary underline">Leer política completa →</Text>
+      </Pressable>
 
       <Pressable
         onPress={() => setAcepta((a) => !a)}
@@ -101,8 +104,12 @@ export default function ResumenScreen() {
       {bloqueadoPorMulta ? (
         <View className="mb-4 rounded-lg border border-peligro p-3">
           <Text className="font-texto text-sm text-peligro">
-            {`Tienes una multa pendiente de ${formatoCOP(multaPendiente)}. Mientras no la pagues o el local no la perdone, no puedes reservar (RN-07). Escríbenos por WhatsApp para resolverla.`}
+            {`Tienes una multa pendiente de ${formatoCOP(multaPendiente)}. Mientras no la pagues o el local no la perdone, no puedes reservar. En tu Cuenta ves de qué cita es y cómo resolverla.`}
           </Text>
+          {/* RF-15: el bloqueo lleva a la Cuenta, donde está el detalle y el contacto del local. */}
+          <Boton variante="borde" className="mt-3" onPress={() => router.navigate('/cuenta')}>
+            Ver mi multa
+          </Boton>
         </View>
       ) : null}
 

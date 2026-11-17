@@ -1,6 +1,7 @@
 // Mappers de la revisión del administrador (RF-25, RF-28): de las filas de Supabase
 // (snake_case) a los modelos de la app. Una fila sin su cita (no debería pasar: el
 // administrador ve todas) se descarta en lugar de inventar datos.
+import { NEGOCIO } from '@/config/negocio';
 import { aEstadoCita } from '@/models/cita.mapper';
 import type {
   CitaRevisionRespuesta,
@@ -13,6 +14,7 @@ import type {
   DevolucionPendiente,
   EstadoMulta,
   MedioPago,
+  MotivoMulta,
   MultaRevision,
 } from '@/types/entidades';
 
@@ -34,6 +36,12 @@ export const ETIQUETA_MULTA: Record<EstadoMulta, string> = {
   cobrada_anticipo: 'Cobrada del anticipo',
   pagada: 'Pagada',
   perdonada: 'Perdonada',
+};
+
+/** Motivo de la multa en palabras; lo comparten la Revisión y la Cuenta del cliente (RF-15, RF-25). */
+export const MOTIVO_MULTA: Record<MotivoMulta, string> = {
+  no_asistio: 'No asistió',
+  cancelo_tarde: `Canceló con menos de ${NEGOCIO.horasMinimasCancelarSinMulta} h`,
 };
 
 const nombreCliente = (c: { nombre: string } | null): string => c?.nombre.trim() || 'Cliente';

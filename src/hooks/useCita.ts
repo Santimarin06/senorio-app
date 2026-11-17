@@ -7,6 +7,7 @@ import {
   cancelarCita,
   getCitaById,
   getMisCitas,
+  getMisMultasPendientes,
   getMultaPendienteTotal,
   reservarCita,
   type NuevaReserva,
@@ -40,6 +41,17 @@ export const useMultaPendiente = () => {
   return useQuery({
     queryKey: ['citas', 'multa-pendiente', clienteId],
     queryFn: () => getMultaPendienteTotal(clienteId),
+    enabled: clienteId !== '',
+    staleTime: unMinuto,
+  });
+};
+
+/** RF-15: detalle de cada multa pendiente para la Cuenta. Empieza por 'citas' para refrescarse con ellas. */
+export const useMisMultasPendientes = () => {
+  const clienteId = useSesionStore((s) => s.usuario?.id ?? '');
+  return useQuery({
+    queryKey: ['citas', 'multas-pendientes', clienteId],
+    queryFn: () => getMisMultasPendientes(clienteId),
     enabled: clienteId !== '',
     staleTime: unMinuto,
   });

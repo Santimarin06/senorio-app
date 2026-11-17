@@ -102,5 +102,28 @@ export function mensajeComprobante(d: DatosAvisoComprobante): string {
   ].join('\n');
 }
 
+export interface DatosAvisoMulta {
+  /** Código visible de la cita (D-35). */
+  codigo: string;
+  /** Fecha y hora de la cita en texto de Bogotá. */
+  fechaHora: string;
+  /** Motivo en palabras, por ejemplo "No asistió". */
+  motivo: string;
+  monto: number;
+}
+
+/**
+ * RF-15, RN-07: el cliente pide resolver una multa pendiente. La app no cobra: el local
+ * recibe el pago por fuera y el administrador la marca como pagada o la perdona (RF-25).
+ */
+export function mensajeMulta(d: DatosAvisoMulta): string {
+  return [
+    `Hola, ${NEGOCIO.nombre}. Tengo una multa pendiente y quiero resolverla para volver a reservar.`,
+    `Cita: ${d.codigo} del ${d.fechaHora}`,
+    `Motivo: ${d.motivo}`,
+    `Multa: ${formatoCOP(d.monto)}`,
+  ].join('\n');
+}
+
 export const enlaceWhatsApp = (mensaje: string): string =>
   `https://wa.me/${NEGOCIO.whatsapp}?text=${encodeURIComponent(mensaje)}`;
