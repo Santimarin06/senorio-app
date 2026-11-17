@@ -106,6 +106,16 @@ export interface DiaHabilitadoRespuesta {
   nota: string | null;
 }
 
+/** Fila de bloqueos (RF-24) con el nombre del profesional, si lo tiene. */
+export interface BloqueoRespuesta {
+  id: string;
+  profesional_id: string | null;
+  inicio: string;
+  fin: string;
+  motivo: string | null;
+  profesionales: { nombre: string } | null;
+}
+
 /** Respuesta de /auth/v1/token (password y refresh_token) y de /auth/v1/signup con sesión. */
 export interface TokenRespuesta {
   access_token: string;

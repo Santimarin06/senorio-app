@@ -48,3 +48,12 @@ export const etiquetaDia = (fecha: string): { corto: string; numero: number; lar
     largo: `${dia} ${utc.getUTCDate()} de ${MESES[utc.getUTCMonth()] ?? ''}`,
   };
 };
+
+/** Primera letra en mayúscula: "martes 17 de noviembre" → "Martes 17 de noviembre". */
+export const mayuscula = (texto: string): string => texto.charAt(0).toUpperCase() + texto.slice(1);
+
+/** Día de la semana y número: "domingo 22". */
+export const diaYNumero = (fecha: string): string => {
+  const { largo, numero } = etiquetaDia(fecha);
+  return `${largo.split(' ')[0] ?? ''} ${numero}`;
+};

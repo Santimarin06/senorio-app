@@ -138,3 +138,27 @@ export interface ImagenComprobante {
   mime: 'image/jpeg' | 'image/png';
   tamano: number;
 }
+
+/** Excepción de dias_habilitados (RF-24, D-24): manda sobre el horario normal de su fecha. */
+export interface DiaEspecial {
+  fecha: string;
+  /** false = el local no atiende ese día. */
+  abierto: boolean;
+  /** Minutos desde medianoche, hora de Bogotá. */
+  abreMin: number;
+  cierraMin: number;
+  nota: string | null;
+}
+
+/** Bloqueo del administrador (RF-24): franjas que dejan de ofrecerse. */
+export interface Bloqueo {
+  id: string;
+  /** null = todo el local. */
+  profesionalId: string | null;
+  /** Nombre del profesional, o null si es de todo el local. */
+  profesional: string | null;
+  /** Instantes UTC (ISO). */
+  inicio: string;
+  fin: string;
+  motivo: string;
+}

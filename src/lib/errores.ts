@@ -146,3 +146,25 @@ export const mensajeDeComprobante = (error: unknown): string => {
     }
   }
 };
+
+/**
+ * Mensaje al guardar o quitar un horario especial o un bloqueo (RF-24). Aclara que nada
+ * cambió, porque la pantalla solo muestra lo que la base confirmó (RN-12, RN-14).
+ */
+export const mensajeDeDiasTrabajo = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. No se guardó nada; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default: {
+      const c = cuerpo(error);
+      // Check de la tabla: apertura < cierre, fin > inicio.
+      if (c?.code === '23514') return 'La hora final debe ser posterior a la inicial.';
+      // RLS: solo el administrador escribe en estas tablas.
+      if (c?.code === '42501') return 'Solo el administrador puede cambiar los días de trabajo.';
+      if (error instanceof Error && error.message.startsWith('No encontramos')) return error.message;
+      return 'No pudimos guardar el cambio. Nada cambió; inténtalo de nuevo.';
+    }
+  }
+};

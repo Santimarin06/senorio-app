@@ -30,6 +30,14 @@ export const HORARIO = {
   almuerzo: { inicio: '12:00', fin: '13:00' },
 } as const;
 
+/** Días de trabajo del panel (RF-24, D-41): cuántos días hacia adelante se listan. */
+export const DIAS_TRABAJO = {
+  /** Domingos y festivos que se muestran para habilitar. */
+  diasDomingosFestivos: 60,
+  /** Excepciones de horario (dias_habilitados) que se listan. */
+  diasExcepciones: 365,
+} as const;
+
 /** Parámetros de src/lib/finanzas.ts (multas y devoluciones), tomados de NEGOCIO. */
 export const FINANZAS = {
   MULTA: NEGOCIO.multa,
