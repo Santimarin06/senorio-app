@@ -30,6 +30,8 @@ export interface ProductoRespuesta {
   descripcion: string | null;
   precio: number;
   foto_url: string | null;
+  /** 'cabello' o 'barba' (check de la tabla productos). */
+  categoria: string;
   activo: boolean;
 }
 

@@ -6,7 +6,13 @@ import { mapProfesional, mapProfesionalDetalle } from '@/models/profesional.mapp
 describe('mapProfesional', () => {
   it('convierte snake_case a camelCase y aplica valores por defecto', () => {
     expect(
-      mapProfesional({ id: '1', nombre: 'Mario', cargo: null, foto_url: '', activo: true }),
+      mapProfesional({
+        id: '1',
+        nombre: 'Mario',
+        cargo: null,
+        foto_url: '',
+        activo: true,
+      }),
     ).toEqual({ id: '1', nombre: 'Mario', cargo: 'Profesional', foto: null });
   });
 
@@ -67,7 +73,35 @@ describe('mapProfesional', () => {
 describe('mapProducto', () => {
   it('foto vacía queda en null', () => {
     expect(
-      mapProducto({ id: 'p', nombre: 'Cera', descripcion: null, precio: 30000, foto_url: '  ', activo: true }),
-    ).toEqual({ id: 'p', nombre: 'Cera', descripcion: '', precio: 30000, foto: null });
+      mapProducto({
+        id: 'p',
+        nombre: 'Cera',
+        descripcion: null,
+        precio: 30000,
+        foto_url: '  ',
+        categoria: 'cabello',
+        activo: true,
+      }),
+    ).toEqual({
+      id: 'p',
+      nombre: 'Cera',
+      descripcion: '',
+      precio: 30000,
+      foto: null,
+      categoria: 'cabello',
+    });
+  });
+
+  it('una categoría desconocida queda en null', () => {
+    const p = mapProducto({
+      id: 'p',
+      nombre: 'Peine',
+      descripcion: null,
+      precio: 18000,
+      foto_url: null,
+      categoria: 'otra',
+      activo: true,
+    });
+    expect(p.categoria).toBeNull();
   });
 });

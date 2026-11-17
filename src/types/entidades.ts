@@ -23,12 +23,17 @@ export interface ProfesionalDetalle extends Profesional {
   servicios: Servicio[];
 }
 
+/** Categorías del catálogo de productos (RF-27). */
+export type CategoriaProducto = 'cabello' | 'barba';
+
 export interface Producto {
   id: string;
   nombre: string;
   descripcion: string;
   precio: number;
   foto: string | null;
+  /** null si la base trae una categoría desconocida: el producto solo aparece en "Todos". */
+  categoria: CategoriaProducto | null;
 }
 
 /** Estados de la cita (D-15). */
