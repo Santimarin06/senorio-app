@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 
+import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import { RECORDATORIOS } from '@/config/negocio';
@@ -31,7 +32,7 @@ export default function Avisos() {
   if (isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando tus avisos…" />;
   if (isError) {
     return (
-      <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={() => void refetch()} />
+      <EstadoPantalla tipo="error" error={error} onReintentar={() => void refetch()} />
     );
   }
 
@@ -48,9 +49,10 @@ export default function Avisos() {
         <View>
           <TarjetaPermiso />
           {marcar.isError ? (
-            <Text className="mb-3 font-texto text-sm text-peligro">
-              {mensajeDeError(marcar.error)} No se marcó ningún aviso.
-            </Text>
+            <AvisoEscritura
+              error={marcar.error}
+              mensaje={`${mensajeDeError(marcar.error)} No se marcó ningún aviso.`}
+            />
           ) : null}
           {noLeidos.length > 0 ? (
             <Boton

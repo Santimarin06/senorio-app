@@ -7,7 +7,6 @@ import EstadoPantalla from '@/components/EstadoPantalla';
 import Tarjeta from '@/components/Tarjeta';
 import { useProfesionales } from '@/hooks/useProfesionales';
 import { filtrarPorTexto } from '@/lib/busqueda';
-import { mensajeDeError } from '@/lib/errores';
 import { useReservaStore } from '@/store/useReservaStore';
 import type { Profesional } from '@/types/entidades';
 
@@ -23,7 +22,7 @@ export default function ListaProfesionales() {
 
   if (isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando profesionales…" />;
   if (isError)
-    return <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={refetch} />;
+    return <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />;
   if (data.length === 0)
     return <EstadoPantalla tipo="vacio" mensaje="Todavía no hay profesionales disponibles." />;
 

@@ -6,6 +6,7 @@
 import { router } from 'expo-router';
 import { Alert, Text, View } from 'react-native';
 
+import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import { NEGOCIO } from '@/config/negocio';
 import { useElegirDevolucion, useMultaPendiente } from '@/hooks/useCita';
@@ -108,9 +109,7 @@ export default function EleccionNoAsistencia({ cita }: { cita: Cita }) {
                 {formatoCOP(op.costoDevolucion)} por la transferencia).
               </Text>
               {elegir.isError ? (
-                <Text className="mb-2 font-texto text-sm text-peligro">
-                  {mensajeDeEleccion(elegir.error)}
-                </Text>
+                <AvisoEscritura error={elegir.error} mensaje={mensajeDeEleccion(elegir.error)} className="mb-2" />
               ) : null}
               <Boton variante="borde" cargando={elegir.isPending} onPress={pedirDevolucion}>
                 {elegir.isError ? 'Reintentar devolución' : 'Devolución'}

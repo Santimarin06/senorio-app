@@ -12,7 +12,6 @@ import Tarjeta from '@/components/Tarjeta';
 import { useProductos } from '@/hooks/useProductos';
 import { filtrarProductos, totalCotizacion, type FiltroCategoria } from '@/lib/cotizacion';
 import { formatoCOP } from '@/lib/dinero';
-import { mensajeDeError } from '@/lib/errores';
 import { useCarritoStore } from '@/store/useCarritoStore';
 
 const CATEGORIAS: { valor: FiltroCategoria; etiqueta: string }[] = [
@@ -44,7 +43,7 @@ export default function ListaProductos() {
 
   if (isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando productos…" />;
   if (isError)
-    return <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={refetch} />;
+    return <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />;
   if (data.length === 0)
     return <EstadoPantalla tipo="vacio" mensaje="Todavía no hay productos en el catálogo." />;
 

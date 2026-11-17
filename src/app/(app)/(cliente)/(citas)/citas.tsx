@@ -9,7 +9,6 @@ import PantallaPendiente from '@/components/PantallaPendiente';
 import Tarjeta from '@/components/Tarjeta';
 import { useMisCitas } from '@/hooks/useCita';
 import { estadoVisible } from '@/lib/agenda';
-import { mensajeDeError } from '@/lib/errores';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { ETIQUETA_ESTADO, separarCitas } from '@/models/cita.mapper';
 
@@ -26,7 +25,7 @@ export default function CitasScreen() {
 
   if (isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando tus citas…" />;
   if (isError)
-    return <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={refetch} />;
+    return <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />;
   if (data.length === 0) {
     return (
       <PantallaPendiente

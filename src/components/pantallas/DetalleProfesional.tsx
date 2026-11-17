@@ -11,7 +11,6 @@ import Tarjeta from '@/components/Tarjeta';
 import { useProfesional } from '@/hooks/useProfesionales';
 import { filtrarPorTexto } from '@/lib/busqueda';
 import { formatoCOP } from '@/lib/dinero';
-import { mensajeDeError } from '@/lib/errores';
 import { faltaServicioPrincipal, totalSeleccion } from '@/lib/reserva';
 import { useReservaStore } from '@/store/useReservaStore';
 
@@ -38,21 +37,16 @@ export default function DetalleProfesional({ id }: { id: string }) {
 
   if (isPending) return <EstadoPantalla tipo="carga" />;
   if (isError)
-    return <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={refetch} />;
+    return <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />;
   if (!profesional) {
     return (
-      <View className="flex-1 bg-fondo">
-        <EstadoPantalla
-          tipo="vacio"
-          icono="person-remove-outline"
-          mensaje="Profesional no encontrado. Puede que ya no atienda en el local."
-        />
-        <View className="p-6">
-          <Boton variante="borde" onPress={() => router.navigate('/reservar')}>
-            Volver a profesionales
-          </Boton>
-        </View>
-      </View>
+      <EstadoPantalla
+        tipo="vacio"
+        icono="person-remove-outline"
+        titulo="Profesional no encontrado"
+        mensaje="Este perfil ya no está disponible."
+        accion={{ texto: 'Ver profesionales', onPress: () => router.navigate('/reservar') }}
+      />
     );
   }
 

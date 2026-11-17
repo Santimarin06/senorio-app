@@ -14,7 +14,7 @@ import { GESTION } from '@/config/negocio';
 import { useGuardarServicio, useServiciosGestion } from '@/hooks/useGestion';
 import { useIdDeRuta } from '@/hooks/useIdDeRuta';
 import { useProfesionales } from '@/hooks/useProfesionales';
-import { mensajeDeError, mensajeDeGestion } from '@/lib/errores';
+import { mensajeDeGestion, tituloDeError } from '@/lib/errores';
 import {
   entradaDeServicio,
   validarServicio,
@@ -32,11 +32,13 @@ export default function FormularioServicio() {
   if (servicios.isPending || profesionales.isPending) {
     return <EstadoPantalla tipo="carga" mensaje="Cargando el formulario…" />;
   }
-  if (servicios.isError || profesionales.isError) {
+  // Solo sin datos se cambia el formulario por el error: si falla un refresco (al volver a la
+  // app sin internet) se conservan los datos y no se pierde lo escrito (RN-14).
+  if (servicios.data === undefined || profesionales.data === undefined) {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(servicios.error ?? profesionales.error)}
+        error={servicios.error ?? profesionales.error}
         onReintentar={() => {
           void servicios.refetch();
           void profesionales.refetch();
@@ -48,12 +50,13 @@ export default function FormularioServicio() {
   const servicio = id === '' ? null : (servicios.data.find((s) => s.id === id) ?? null);
   if (id !== '' && !servicio) {
     return (
-      <View className="flex-1 bg-fondo">
-        <EstadoPantalla tipo="vacio" mensaje="No encontramos ese servicio. Puede que el enlace sea viejo." />
-        <Boton variante="borde" className="mx-6 mb-8" onPress={() => router.back()}>
-          Volver a la gestión
-        </Boton>
-      </View>
+      <EstadoPantalla
+        tipo="vacio"
+        icono="search-outline"
+        titulo="No encontramos ese servicio"
+        mensaje="Puede que ya no exista o que el enlace esté incompleto."
+        accion={{ texto: 'Volver a la gestión', onPress: () => router.navigate('/panel/gestion') }}
+      />
     );
   }
 
@@ -101,7 +104,7 @@ function Formulario({ servicio, profesionales }: { servicio: ServicioGestion | n
           Alert.alert(servicio ? 'Servicio actualizado' : 'Servicio creado', `${r.valor.nombre} quedó guardado.`);
           router.back();
         },
-        onError: (e) => Alert.alert('No se guardó', mensajeDeGestion(e)),
+        onError: (e) => Alert.alert(tituloDeError(e), mensajeDeGestion(e)),
       },
     );
   };

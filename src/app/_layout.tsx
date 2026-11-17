@@ -1,14 +1,16 @@
 // Layout raíz: fuentes + splash (como navegation-app) y QueryClientProvider (como 06-Peliculas).
 import '../global.css';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { AppState, Platform, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { intervaloDeReintento } from '@/lib/reconexion';
 import { configurarManejador } from '@/services/notificaciones';
 import { restaurarSesion } from '@/services/sesion';
 import { useSesionStore } from '@/store/useSesionStore';
@@ -26,10 +28,18 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
-      refetchOnWindowFocus: false,
+      // Al volver a la app se refrescan los datos viejos (focusManager, más abajo).
+      refetchOnWindowFocus: true,
+      // RN-14: una pantalla con error se reintenta sola y se recupera cuando vuelve internet.
+      refetchInterval: (query) => intervaloDeReintento(query.state.status),
     },
   },
 });
+
+// En React Native "foco" es que la app esté en primer plano (documentación de TanStack Query).
+const alCambiarEstadoApp = (estado: AppStateStatus) => {
+  if (Platform.OS !== 'web') focusManager.setFocused(estado === 'active');
+};
 
 export default function RootLayout() {
   const [fuentesListas, errorFuentes] = useFonts({
@@ -39,6 +49,11 @@ export default function RootLayout() {
 
   const sesionRestaurada = useSesionStore((s) => s.restaurada);
   const fuentesResueltas = fuentesListas || Boolean(errorFuentes);
+
+  useEffect(() => {
+    const suscripcion = AppState.addEventListener('change', alCambiarEstadoApp);
+    return () => suscripcion.remove();
+  }, []);
 
   useEffect(() => {
     // Si una fuente falla se sigue con la del sistema en vez de dejar la app trabada.

@@ -13,7 +13,6 @@ import { useDiasEspeciales } from '@/hooks/useDiasTrabajo';
 import { useHabilitarDia } from '@/hooks/useHabilitarDia';
 import { domingosYFestivos, TEXTO_HORARIO_NORMAL, textoVentana } from '@/lib/diasTrabajo';
 import { aBogota, CONFIG, sumarDias } from '@/lib/disponibilidad';
-import { mensajeDeError } from '@/lib/errores';
 import { etiquetaDia, mayuscula } from '@/lib/fechas';
 import type { DiaEspecial } from '@/types/entidades';
 
@@ -35,7 +34,7 @@ export default function DiasLaborables() {
 
   if (isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando los días laborables…" />;
   if (isError) {
-    return <EstadoPantalla tipo="error" mensaje={mensajeDeError(error)} onReintentar={refetch} />;
+    return <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />;
   }
 
   const porFecha = new Map(data.map((d) => [d.fecha, d]));

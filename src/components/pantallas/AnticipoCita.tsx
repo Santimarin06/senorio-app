@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
+import AvisoEscritura from '@/components/AvisoEscritura';
 import Boton from '@/components/Boton';
 import CampoTexto from '@/components/CampoTexto';
 import Chip from '@/components/Chip';
@@ -17,7 +18,7 @@ import { useEnviarComprobante } from '@/hooks/useComprobante';
 import { useElegirImagen } from '@/hooks/useElegirImagen';
 import { codigoCita } from '@/lib/codigoCita';
 import { montoAnticipo, ofreceAnticipo, puedeEnviarComprobante } from '@/lib/comprobante';
-import { mensajeDeComprobante, mensajeDeError } from '@/lib/errores';
+import { mensajeDeComprobante } from '@/lib/errores';
 import { calcularSaldo, formatoCOP, rangoAnticipo } from '@/lib/finanzas';
 import { ETIQUETA_ANTICIPO, ETIQUETA_ESTADO } from '@/models/cita.mapper';
 import type { Cita, MedioPago, TipoAnticipo } from '@/types/entidades';
@@ -80,7 +81,7 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
     return (
       <EstadoPantalla
         tipo="error"
-        mensaje={mensajeDeError(multa.error)}
+        error={multa.error}
         onReintentar={() => void multa.refetch()}
       />
     );
@@ -252,9 +253,7 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
           ) : null}
 
           {enviar.isError ? (
-            <Text className="mb-3 font-texto text-sm text-peligro">
-              {mensajeDeComprobante(enviar.error)}
-            </Text>
+            <AvisoEscritura error={enviar.error} mensaje={mensajeDeComprobante(enviar.error)} />
           ) : null}
           <Boton className="mb-3" cargando={ocupado} onPress={confirmar}>
             {enviar.isError ? 'Reintentar envío' : 'Enviar comprobante'}
