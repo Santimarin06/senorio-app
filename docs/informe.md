@@ -78,7 +78,7 @@ Las rutas dinámicas `/reservar/[profesionalId]` y `/cita/[id]` muestran "Profes
 
 ## 7. Matriz de requisitos
 
-Ver [docs/matriz-requisitos.md](matriz-requisitos.md): requisito, función, pantalla, archivo, evidencia y estado. El estado de cada RF y RN está en [docs/estado.md](estado.md).
+Ver [docs/matriz-requisitos.md](matriz-requisitos.md): requisito, función, pantalla, archivo, evidencia y estado.
 
 ## 8. Evidencias de pruebas
 
@@ -89,7 +89,7 @@ Ver [docs/matriz-requisitos.md](matriz-requisitos.md): requisito, función, pant
 
 ## 9. Prueba con el cliente
 
-Pendiente. Se registra en [docs/prueba-cliente.md](prueba-cliente.md) con la plantilla de ese archivo: tarea solicitada, resultado, dificultades observadas y al menos un ajuste hecho por su retroalimentación, sin datos personales innecesarios (solo el rol de la persona, no su nombre ni su teléfono). Al terminar, se copia aquí el resumen y el ajuste derivado.
+Pendiente. Se registra en esta sección: tarea solicitada, resultado, dificultades observadas y al menos un ajuste hecho por su retroalimentación, sin datos personales innecesarios (solo el rol de la persona, no su nombre ni su teléfono).
 
 ## 10. Límites conocidos
 

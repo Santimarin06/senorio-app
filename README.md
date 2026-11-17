@@ -3,9 +3,7 @@
 Proyecto final de Móvil II. Los clientes de la barbería Señorío reservan una cita con un profesional por semana, pagan un anticipo opcional subiendo el comprobante, cancelan o reagendan según la política del local, cotizan productos por WhatsApp y ven el local en un mapa. El profesional ve su agenda, marca la asistencia y recibe avisos. El administrador gestiona la agenda del local, los días de trabajo, el catálogo, los profesionales, las multas, los comprobantes y las devoluciones.
 
 - Requisitos y reglas: [docs/SRS.md](docs/SRS.md) (RF, RN y pantallas) y [docs/decisiones.md](docs/decisiones.md) (D-xx).
-- Estado de cada requisito: [docs/estado.md](docs/estado.md).
 - Informe, matriz de requisitos y bitácora: [docs/informe.md](docs/informe.md), [docs/matriz-requisitos.md](docs/matriz-requisitos.md) y [docs/bitacora.md](docs/bitacora.md).
-- Prueba con el cliente y guion de la sustentación: [docs/prueba-cliente.md](docs/prueba-cliente.md) y [docs/sustentacion.md](docs/sustentacion.md).
 
 ## Tecnologías
 
