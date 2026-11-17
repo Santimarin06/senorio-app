@@ -6,7 +6,7 @@ Móvil II · React Native, TypeScript y Expo · Entrega del 19 nov 2026 · Desar
 
 | Tema | Descripción |
 |---|---|
-| Cliente | Señorío Barber, barbería y manicura |
+| Cliente | Señorío Barber, barbería y manicura. Cra. 10 #25B-81, Pereira, Risaralda |
 | Usuario principal | El cliente que reserva una cita |
 | Cómo se hace hoy | Las citas se coordinan una a una por WhatsApp y a mano; las multas y la tolerancia se aplican de memoria |
 | Cómo se hace con la app | El cliente elige profesional, servicios y una franja libre de la semana, acepta la política y reserva; puede pagar un anticipo subiendo el comprobante; el local recibe el aviso por WhatsApp y gestiona agenda, asistencia, multas y comprobantes desde el panel |
@@ -82,17 +82,14 @@ Ver [docs/matriz-requisitos.md](matriz-requisitos.md): requisito, función, pant
 
 ## 8. Evidencias de pruebas
 
-- `npx tsc --noEmit` sin errores y `npx jest` en verde (cifras del último corte en `docs/estado.md`): disponibilidad, festivos, dinero, cancelación, reagendar, cotización, búsqueda, navegación por rol, reconexión, recordatorios, mappers, el permiso de notificaciones y la suscripción del GPS.
+- `npx tsc --noEmit` sin errores y `npx jest` en verde: **28 suites y 306 pruebas** (corte del 17 nov 2026, rama `chore/p15-entrega`). Cubren disponibilidad, festivos, dinero, cancelación, reagendar, cotización, búsqueda, navegación por rol, reconexión, recordatorios, mappers, el permiso de notificaciones y la suscripción del GPS.
 - Pruebas SQL en `supabase/pruebas/` contra la base real, dentro de `begin … rollback`: cancelación, comprobantes, asistencia, revisión, gestión, profesionales y notificaciones con `ok`; `reagendar.sql` y `dias_trabajo.sql` se corrigieron y falta volver a correrlas.
-- Prueba en un Android real: pendiente para la mayoría de funciones; los pasos están en el README.
+- Prueba en un Android real: pendiente para la mayoría de funciones; los pasos están en el README. El APK se genera con `eas build -p android --profile apk` (README, Generar el APK).
+- Fallos provocados a mano durante el desarrollo y su corrección: formulario borrado al quitar y poner el wifi (D-49), suscripción del GPS viva al salir del mapa mientras arrancaba (D-50, con prueba), imagen del comprobante que Expo Go no leía (D-38), canal de notificaciones que fallaba en Expo Go (D-47) y citas de prueba que chocaban en la base (D-50).
 
 ## 9. Prueba con el cliente
 
-Pendiente. Registrar aquí, sin datos personales innecesarios: tarea solicitada, resultado, dificultades observadas y al menos un ajuste hecho por su retroalimentación.
-
-| Fecha | Persona (rol) | Tarea | Resultado | Dificultades | Ajuste derivado |
-|---|---|---|---|---|---|
-| (completar) | (completar) | (completar) | (completar) | (completar) | (completar) |
+Pendiente. Se registra en [docs/prueba-cliente.md](prueba-cliente.md) con la plantilla de ese archivo: tarea solicitada, resultado, dificultades observadas y al menos un ajuste hecho por su retroalimentación, sin datos personales innecesarios (solo el rol de la persona, no su nombre ni su teléfono). Al terminar, se copia aquí el resumen y el ajuste derivado.
 
 ## 10. Límites conocidos
 
@@ -100,5 +97,25 @@ Pendiente. Registrar aquí, sin datos personales innecesarios: tarea solicitada,
 - Para el cliente, un bloqueo del profesional se ve igual que una cita: "Ocupada" (D-24).
 - Fotos reemplazadas y comprobantes cuyo registro falló quedan en Storage (D-38, D-43).
 - Un cambio de rol exige cerrar sesión y volver a entrar (D-46).
-- Faltan del cliente la dirección, el logo definitivo y las fotos; el catálogo es de prueba (D-01, D-03).
-- Sin APK: la app se ejecuta con Expo Go y el servidor de desarrollo (README).
+- Del cliente ya está la dirección (Cra. 10 #25B-81, Pereira, Risaralda, D-51); el logo de `assets/images/logo.png` está confirmado y es el del ícono y el splash (D-52); faltan las fotos reales y el catálogo es de prueba (D-01, D-03). Las coordenadas del mapa son las que dio el cliente (D-03), no se calcularon desde la dirección.
+- APK: `eas.json` tiene el perfil `apk`, pero el instalador aún no se ha generado ni probado; mientras tanto la app corre con Expo Go y el servidor de desarrollo (README).
+
+**Lo recortado (orden de D-34).** RF-31, cita manual del administrador, solo existe en la base (`reservar_cita` acepta `p_cliente_id`), sin pantalla. Los demás puntos del orden de recorte (RF-30, RF-29, la no asistencia de RF-14 y las devoluciones de RF-28) sí alcanzaron. "Olvidé mi contraseña" no se construye (D-14).
+
+**Avisos sin push (D-10).** No hay servidor que envíe notificaciones push. El aviso de "Cita nueva", "reagendada" o "cancelada" se guarda en la base y el teléfono del profesional lo muestra cuando la app sincroniza: con la app abierta (cada minuto) o al volver a ella. El recordatorio de 30 minutos sí suena con la app cerrada, porque lo programa el propio teléfono; "Forzar detención" o un ahorro de batería agresivo pueden borrarlo (D-47, D-48).
+
+**Decisiones del equipo sin confirmar con el cliente.** El SRS no las fijaba y se tomaron como suposición (detalle en `docs/decisiones.md`). Conviene revisarlas en la prueba con el cliente:
+
+| Decisión | Qué se supuso |
+|---|---|
+| D-24 | Sin antelación mínima: una franja que empieza ahora mismo se puede reservar. Un bloqueo del profesional se ve "Ocupada", igual que una cita |
+| D-25 | El registro pide nombre, celular colombiano y contraseña; la confirmación por correo está desactivada |
+| D-35 | El código visible de la cita es `SB-` + 6 caracteres de su id |
+| D-36 | La bolsa de la cotización cuenta unidades, no productos distintos |
+| D-38 | Medios de pago del anticipo: Nequi, Bold o Bancolombia; comprobante JPG o PNG de hasta 5 MB |
+| D-39 | La agenda del profesional no muestra las citas canceladas ni las reagendadas |
+| D-42 | Revisión del administrador en tres pestañas: Comprobantes, Multas y Devoluciones |
+| D-44 | El cliente edita solo su nombre y su teléfono, en la misma pantalla Cuenta |
+| D-45 | Reglas finas de reagendar y del anticipo trasladado |
+| D-46 | Desactivar a un profesional lo oculta al cliente pero no cancela sus citas |
+| D-47 | Además de "cita nueva", el profesional recibe aviso de cita reagendada y cancelada |

@@ -160,6 +160,7 @@ export default function MapaLocal() {
       )}
 
       <View className="border-t border-borde bg-fondo p-4">
+        <Text className="mb-1 font-texto text-base text-primary">{NEGOCIO.direccion}</Text>
         <Text className="font-texto text-sm text-secondary">
           Marcador: {NEGOCIO.nombre}. Punto azul: tu dispositivo. {textoSeguimiento}.
         </Text>
