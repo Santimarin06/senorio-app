@@ -6,6 +6,7 @@ import { ScrollView, Text, View } from 'react-native';
 import Boton from '@/components/Boton';
 import ConCita from '@/components/pantallas/ConCita';
 import { useIdDeRuta } from '@/hooks/useIdDeRuta';
+import { puedeCancelar } from '@/lib/cancelacion';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { calcularSaldo, formatoCOP } from '@/lib/finanzas';
 import { ETIQUETA_ESTADO } from '@/models/cita.mapper';
@@ -63,13 +64,16 @@ export default function DetalleCitaScreen() {
                 >
                   Reagendar
                 </Boton>
-                <Boton
-                  variante="borde"
-                  onPress={() => router.push({ pathname: '/cita/[id]/cancelar', params: { id } })}
-                >
-                  Cancelar cita
-                </Boton>
               </>
+            ) : null}
+            {/* RF-09: mismo criterio que la función cancelar_cita de la base. */}
+            {puedeCancelar(cita, Date.now()) ? (
+              <Boton
+                variante="borde"
+                onPress={() => router.push({ pathname: '/cita/[id]/cancelar', params: { id } })}
+              >
+                Cancelar cita
+              </Boton>
             ) : null}
           </ScrollView>
         );
