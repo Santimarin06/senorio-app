@@ -12,9 +12,18 @@ import type { useElegirImagen } from '@/hooks/useElegirImagen';
 interface Props {
   selector: ReturnType<typeof useElegirImagen>;
   deshabilitado?: boolean;
+  /** Máximo que se anuncia; por defecto, el del comprobante. La foto de un producto usa FOTOS. */
+  tamanoMaximoBytes?: number;
+  /** Qué es la imagen, para la vista previa ("comprobante", "foto del producto"). */
+  queEs?: string;
 }
 
-export default function SelectorImagenComprobante({ selector, deshabilitado = false }: Props) {
+export default function SelectorImagenComprobante({
+  selector,
+  deshabilitado = false,
+  tamanoMaximoBytes = COMPROBANTE.tamanoMaximoBytes,
+  queEs = 'comprobante',
+}: Props) {
   const { permisoCamara, imagen, error, leyendo } = selector;
   const inactivo = deshabilitado || leyendo;
 
@@ -70,20 +79,20 @@ export default function SelectorImagenComprobante({ selector, deshabilitado = fa
             source={{ uri: imagen.uri }}
             contentFit="contain"
             style={{ width: '100%', height: 220 }}
-            accessibilityLabel="Vista previa del comprobante"
+            accessibilityLabel={`Vista previa del ${queEs}`}
           />
           <Text className="mt-2 font-texto text-sm text-primary" numberOfLines={1}>
             {imagen.nombre}
           </Text>
           <Text className="font-texto text-sm text-secondary">
             {imagen.mime === 'image/png' ? 'PNG' : 'JPG'} · {formatoTamano(imagen.tamano)} · Aún no
-            se ha enviado
+            se ha subido
           </Text>
         </View>
       ) : null}
 
       <Text className="mt-2 font-texto text-sm text-secondary">
-        Formatos JPG o PNG · hasta {formatoTamano(COMPROBANTE.tamanoMaximoBytes)}.
+        Formatos JPG o PNG · hasta {formatoTamano(tamanoMaximoBytes)}.
       </Text>
     </View>
   );

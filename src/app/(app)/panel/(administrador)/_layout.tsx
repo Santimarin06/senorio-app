@@ -1,4 +1,4 @@
-// Tabs del administrador: Agenda (con su Stack de días de trabajo), Gestión y Revisión (SRS §6 y §7).
+// Tabs del administrador: Agenda (con su Stack de días de trabajo), Gestión (con su Stack de formularios) y Revisión (SRS §6 y §7).
 import { Redirect, Tabs } from 'expo-router';
 
 import { iconoNav } from '@/components/navegacion/iconoNav';
@@ -21,8 +21,9 @@ export default function AdministradorTabsLayout() {
         options={{ title: 'Agenda', headerShown: false, tabBarIcon: iconoNav('calendar-outline') }}
       />
       <Tabs.Screen
-        name="gestion"
-        options={{ title: 'Gestión', tabBarIcon: iconoNav('construct-outline') }}
+        name="(gestion)"
+        // La tab Gestión tiene su propio Stack (lista y formularios), que pone la cabecera.
+        options={{ title: 'Gestión', headerShown: false, tabBarIcon: iconoNav('construct-outline') }}
       />
       <Tabs.Screen
         name="revision"
