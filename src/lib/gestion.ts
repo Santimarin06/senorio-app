@@ -6,8 +6,11 @@ import { formatoCOP } from '@/lib/dinero';
 import { parsearPesos } from '@/lib/finanzas';
 import type {
   CategoriaProducto,
+  CuentaUsuario,
   ProductoFormulario,
   ProductoGestion,
+  ProfesionalFormulario,
+  ProfesionalGestion,
   ServicioFormulario,
   ServicioGestion,
 } from '@/types/entidades';
@@ -198,10 +201,106 @@ export const ordenarGestion = <T extends { activo: boolean; nombre: string }>(li
     a.activo === b.activo ? a.nombre.localeCompare(b.nombre, 'es') : a.activo ? -1 : 1,
   );
 
-/** Ruta de la foto en el bucket "fotos": productos/<id o "nuevo">-<ms>.<ext>. Nunca pisa otra. */
+/** Ruta de una foto en el bucket "fotos": <carpeta>/<id o "nuevo">-<ms>.<ext>. Nunca pisa otra. */
+export const rutaFoto = (
+  carpeta: string,
+  id: string | null,
+  ahoraMs: number,
+  mime: 'image/jpeg' | 'image/png',
+): string => `${carpeta}/${id ?? 'nuevo'}-${ahoraMs}.${mime === 'image/png' ? 'png' : 'jpg'}`;
+
 export const rutaFotoProducto = (
   productoId: string | null,
   ahoraMs: number,
   mime: 'image/jpeg' | 'image/png',
-): string =>
-  `${FOTOS.carpetaProductos}/${productoId ?? 'nuevo'}-${ahoraMs}.${mime === 'image/png' ? 'png' : 'jpg'}`;
+): string => rutaFoto(FOTOS.carpetaProductos, productoId, ahoraMs, mime);
+
+export const rutaFotoProfesional = (
+  profesionalId: string | null,
+  ahoraMs: number,
+  mime: 'image/jpeg' | 'image/png',
+): string => rutaFoto(FOTOS.carpetaProfesionales, profesionalId, ahoraMs, mime);
+
+// ---------------------------------------------------------------------------------------------
+// Profesionales (RF-29, D-13, D-46)
+// ---------------------------------------------------------------------------------------------
+
+export interface EntradaProfesional {
+  nombre: string;
+  cargo: string;
+  /** Ids elegidos (puede incluir servicios inactivos que ya prestaba). */
+  servicios: string[];
+  /** Cuenta elegida para vincular; null si no se eligió o si la ficha ya tiene la suya. */
+  usuarioId: string | null;
+}
+
+export type CampoProfesional = 'nombre' | 'cargo' | 'servicios' | 'cuenta';
+
+/**
+ * RF-29: nombre obligatorio, cargo opcional, al menos un servicio principal activo (con solo
+ * adicionales no se puede reservar, D-02) y, si la ficha aún no tiene cuenta, elegir una (D-13).
+ * `principalesActivos` son los ids de los servicios principales activos del local.
+ */
+export function validarProfesional(
+  entrada: EntradaProfesional,
+  principalesActivos: ReadonlySet<string>,
+  necesitaCuenta: boolean,
+  foto: string | null,
+): ResultadoFormulario<ProfesionalFormulario, CampoProfesional> {
+  const errores: ErroresFormulario<CampoProfesional> = {};
+  const nombre = validarNombre(entrada.nombre);
+  if (nombre) errores.nombre = nombre;
+  if (entrada.cargo.trim().length > GESTION.cargoMaximo) {
+    errores.cargo = `El cargo admite hasta ${GESTION.cargoMaximo} caracteres.`;
+  }
+  const servicios = [...new Set(entrada.servicios)];
+  if (!servicios.some((id) => principalesActivos.has(id))) {
+    errores.servicios = 'Elige al menos un servicio principal que preste.';
+  }
+  if (necesitaCuenta && !entrada.usuarioId) {
+    errores.cuenta = 'Elige la cuenta con la que la persona se registró.';
+  }
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return {
+    ok: true,
+    valor: {
+      nombre: entrada.nombre.trim(),
+      cargo: entrada.cargo.trim(),
+      foto,
+      servicios,
+      usuarioId: necesitaCuenta ? entrada.usuarioId : null,
+    },
+  };
+}
+
+export const entradaDeProfesional = (p: ProfesionalGestion | null): EntradaProfesional => ({
+  nombre: p?.nombre ?? '',
+  cargo: p?.cargoGuardado ?? '',
+  servicios: p ? p.servicios.map((s) => s.id) : [],
+  usuarioId: null,
+});
+
+/** "Barbero · Corte clásico, Barba" (solo servicios activos) o "Sin cuenta" si falta vincularla. */
+export const resumenProfesional = (p: ProfesionalGestion): string => {
+  const servicios = p.servicios.filter((s) => s.activo).map((s) => s.nombre);
+  const partes = [p.cargo, servicios.length > 0 ? servicios.join(', ') : 'Sin servicios activos'];
+  if (!p.cuenta) partes.push('Sin cuenta');
+  return partes.join(' · ');
+};
+
+/** Búsqueda de la pestaña Profesionales: por nombre, cargo, servicio o correo de la cuenta. */
+export const coincideProfesional = (p: ProfesionalGestion, consulta: string): boolean => {
+  const buscado = normalizar(consulta);
+  if (buscado === '') return true;
+  return [p.nombre, p.cargo, p.cuenta?.correo ?? '', ...p.servicios.map((s) => s.nombre)].some((c) =>
+    normalizar(c).includes(buscado),
+  );
+};
+
+/** Búsqueda de cuentas sin ficha: por nombre, correo o teléfono. */
+export const coincideCuenta = (c: CuentaUsuario, consulta: string): boolean => {
+  const buscado = normalizar(consulta);
+  if (buscado === '') return true;
+  return [c.nombre, c.correo, c.telefono].some((x) => normalizar(x).includes(buscado));
+};

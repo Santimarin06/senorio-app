@@ -40,6 +40,33 @@ export interface ServicioGestionRespuesta extends ServicioRespuesta {
   profesionales: { id: string; nombre: string; activo: boolean }[] | null;
 }
 
+/** Perfil de usuario visto por el administrador (RF-29): la RLS le deja leerlos todos. */
+export interface CuentaRespuesta {
+  id: string;
+  nombre: string;
+  correo: string | null;
+  telefono: string | null;
+}
+
+/**
+ * Profesional visto por el administrador (RF-29): activo o no, con sus servicios y la cuenta
+ * vinculada. PostgREST embebe perfiles como objeto (profesional_id es único) o como lista.
+ */
+export interface ProfesionalGestionRespuesta extends ProfesionalRespuesta {
+  servicios: { id: string; nombre: string; es_adicional: boolean; activo: boolean }[] | null;
+  perfiles: CuentaRespuesta | CuentaRespuesta[] | null;
+}
+
+/** Parámetros de la función guardar_profesional (RF-29, D-46). p_id null = crear. */
+export interface GuardarProfesionalCuerpo {
+  p_id: string | null;
+  p_nombre: string;
+  p_cargo: string | null;
+  p_foto_url: string | null;
+  p_servicios: string[];
+  p_usuario: string | null;
+}
+
 /** Parámetros de la función guardar_servicio (RF-26, D-43). p_id null = crear. */
 export interface GuardarServicioCuerpo {
   p_id: string | null;

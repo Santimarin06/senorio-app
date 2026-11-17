@@ -69,6 +69,37 @@ export interface ProductoFormulario {
   foto: string | null;
 }
 
+/** Cuenta de un usuario registrado, como la ve el administrador (RF-29, D-13). */
+export interface CuentaUsuario {
+  id: string;
+  nombre: string;
+  correo: string;
+  telefono: string;
+}
+
+/** Profesional en la gestión del administrador (RF-29): incluye los desactivados. */
+export interface ProfesionalGestion extends Profesional {
+  activo: boolean;
+  /** Cargo tal como está en la base ('' si no tiene; el cliente ve "Profesional"). */
+  cargoGuardado: string;
+  /** Servicios que presta (profesional_servicios), por nombre. */
+  servicios: { id: string; nombre: string; esAdicional: boolean; activo: boolean }[];
+  /** Cuenta vinculada con asignar_rol, o null si la ficha aún no tiene. */
+  cuenta: CuentaUsuario | null;
+}
+
+/** Datos ya validados del formulario de profesional (RF-29). */
+export interface ProfesionalFormulario {
+  nombre: string;
+  cargo: string;
+  /** URL pública de la foto en el bucket "fotos", o null. */
+  foto: string | null;
+  /** Ids de los servicios que presta (al menos uno principal activo). */
+  servicios: string[];
+  /** Cuenta a vincular; null si se edita una ficha que ya tiene la suya. */
+  usuarioId: string | null;
+}
+
 /** Estados de la cita (D-15). */
 export type EstadoCita =
   | 'confirmada'

@@ -30,6 +30,8 @@ interface Props<T extends ElementoGestion> {
   coincide: (elemento: T, consulta: string) => boolean;
   onNuevo: () => void;
   onEditar: (id: string) => void;
+  /** Texto del aviso al desactivar; por defecto, que los clientes dejarán de verlo. */
+  avisoDesactivar?: string;
   /** Guarda el cambio en la base; la lista se refresca sola al invalidar la caché. */
   cambiarActivo: (id: string, activo: boolean) => Promise<void>;
   refrescando: boolean;
@@ -58,7 +60,7 @@ export default function ListaGestion<T extends ElementoGestion>(props: Props<T>)
     if (!e.activo) return void ejecutar();
     Alert.alert(
       `¿Desactivar ${e.nombre}?`,
-      `Los clientes dejarán de verlo. No se borra: puedes reactivarlo cuando quieras.`,
+      props.avisoDesactivar ?? 'Los clientes dejarán de verlo. No se borra: puedes reactivarlo cuando quieras.',
       [
         { text: 'Volver', style: 'cancel' },
         { text: 'Desactivar', style: 'destructive', onPress: () => void ejecutar() },

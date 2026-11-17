@@ -71,10 +71,11 @@ export const urlPublicaFoto = (ruta: string): string =>
   `${env.supabaseUrl}/storage/v1/object/public/${FOTOS.bucket}/${ruta}`;
 
 /**
- * Sube la foto ya validada (JPG o PNG) y devuelve su URL pública. Igual que el comprobante:
+ * Sube una foto del catálogo (producto o profesional, RF-27 y RF-29) ya validada (JPG o PNG)
+ * y devuelve su URL pública. Igual que el comprobante:
  * bytes como ArrayBuffer y x-upsert en false, así nunca pisa otro archivo.
  */
-export const subirFotoProducto = async (ruta: string, imagen: ImagenComprobante): Promise<string> => {
+export const subirFoto = async (ruta: string, imagen: ImagenComprobante): Promise<string> => {
   await storageApi.post(`/object/${FOTOS.bucket}/${ruta}`, imagen.bytes, {
     headers: { 'Content-Type': imagen.mime, 'x-upsert': 'false' },
   });

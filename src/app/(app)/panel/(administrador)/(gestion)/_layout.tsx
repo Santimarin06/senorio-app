@@ -1,4 +1,4 @@
-// Stack de la tab Gestión del administrador: la lista y los formularios (RF-26, RF-27).
+// Stack de la tab Gestión del administrador: la lista y los formularios (RF-26, RF-27, RF-29).
 import { Stack } from 'expo-router';
 
 import { opcionesStack } from '@/components/navegacion/opcionesStack';
@@ -21,6 +21,12 @@ export default function GestionStackLayout() {
         name="producto"
         options={({ route }) => ({
           title: conId(route.params) ? 'Editar producto' : 'Nuevo producto',
+        })}
+      />
+      <Stack.Screen
+        name="profesional"
+        options={({ route }) => ({
+          title: conId(route.params) ? 'Editar profesional' : 'Nuevo profesional',
         })}
       />
     </Stack>
