@@ -264,25 +264,33 @@ El MVP del 19 de noviembre incluye todos los requisitos M y S de las secciones 4
 
 ## 9. Cronograma por hitos
 
-Quedan 13 días desde hoy (6 de noviembre) hasta la entrega del 19 de noviembre de 2026. Los cuatro hitos son los de los lineamientos; como el docente no fijó fechas, el equipo las reparte. Las funciones M se congelan el 16 de noviembre: lo que no esté listo ese día entre las S queda fuera.
+Quedan 13 días desde hoy (6 de noviembre) hasta la entrega del 19 de noviembre de 2026. Los cuatro hitos son los de los lineamientos; como el docente no fijó fechas, se reparten aquí. El proyecto lo desarrolla una sola persona (D-34). Las funciones M se congelan el **17 de noviembre de 2026 a las 6:00 p. m.** (hora de Bogotá, D-34): después de esa hora solo se corrigen fallos, se prueba y se documenta.
 
-| Fechas | Hito | Qué se demuestra | Reparto (propuesta) |
-|---|---|---|---|
-| 6 – 8 nov | 1. Definición y base | SRS v2, mockup, matriz de requisitos, proyecto Expo ejecutable con Expo Router y primeras rutas, tablas y datos de prueba en la base remota | Ambos |
-| 9 – 12 nov | 2. Interfaz y lógica | Stack, Tabs y Drawer conectados; componentes con props; contador; cálculo; formularios; Zustand | Persona A: app del cliente. Persona B: panel y base de datos |
-| 13 – 16 nov | 3. Datos y ubicación | Axios, tipos, mapper, hooks y TanStack Query; disponibilidad semanal; mapa, GPS y permisos | A: disponibilidad y reserva. B: panel, CRUD y mapa |
-| 17 – 19 nov | 4. Integración y ajustes | Proceso completo, multas, comprobantes, recordatorio, pruebas de fallos, prueba con el cliente, README, informe e instalador Android | Ambos |
+| Fechas | Hito | Qué se demuestra |
+|---|---|---|
+| 6 – 8 nov | 1. Definición y base | SRS v2, mockup, matriz de requisitos, proyecto Expo ejecutable con Expo Router y primeras rutas, tablas y datos de prueba en la base remota |
+| 9 – 12 nov | 2. Interfaz y lógica | Stack, Tabs y Drawer conectados; componentes con props; contador; cálculo; formularios; Zustand |
+| 13 – 17 nov | 3. Datos y ubicación | Axios, tipos, mapper, hooks y TanStack Query; disponibilidad semanal; mapa, GPS y permisos; funciones M terminadas antes del 17 nov a las 6:00 p. m. |
+| 18 – 19 nov | 4. Integración y ajustes | Proceso completo, multas, comprobantes, recordatorio, pruebas de fallos, prueba con el cliente, README, informe e instalador Android |
+
+**Orden de recorte (D-34).** Si el tiempo no alcanza, se deja fuera en este orden y se documenta como límite conocido:
+
+1. RF-30, recordatorio y avisos al profesional.
+2. RF-29, gestión de profesionales (el rol se sigue asignando con `asignar_rol` desde el SQL Editor).
+3. El caso de cita no asistida de RF-14 (RN-16, D-05). Reagendar una cita futura se mantiene.
+4. Las devoluciones de RF-28. Aprobar o rechazar el comprobante se mantiene.
+5. RF-31, cita manual.
 
 **Riesgos**
 
 | Riesgo | Mitigación |
 |---|---|
-| Equipo nuevo en React y panel dentro del plazo | Recortar los requisitos C y luego S antes que los M; repartir cliente y panel entre los dos |
+| Una sola persona, nueva en React, con el panel dentro del plazo | Seguir el orden de recorte de D-34 antes de tocar un requisito M |
 | Cálculo de franjas con varios servicios, almuerzo y días habilitados | Una sola función de disponibilidad con pruebas desde el hito 2 |
 | Dos clientes reservan la misma franja | Restricción única en la base de datos |
 | Recordatorio al profesional no llega con la app cerrada | Probar en un Android real desde el hito 3; si falla, mostrarlo dentro de la agenda |
 | Faltan datos del cliente (dirección, fotos, uñas) | Trabajar con datos de prueba y reemplazarlos al recibirlos |
-| Solo 13 días para todo el alcance | Congelar funciones el 16 de nov; un requisito S que no esté listo se deja fuera y se documenta como límite conocido |
+| Solo 13 días para todo el alcance | Congelar funciones el 17 de nov a las 6:00 p. m. (D-34); lo que no esté listo se recorta en el orden de D-34 y se documenta como límite conocido |
 
 ## 10. Pendientes por confirmar
 
