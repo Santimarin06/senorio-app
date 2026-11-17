@@ -105,8 +105,8 @@ export default function MapaLocal() {
     setOcupado(true);
     try {
       if (!(await asegurarUbicacion())) return;
-      await iniciarSeguimiento();
-      setSeguimiento('activo');
+      // false: se salió del mapa mientras se pedía la suscripción; el store ya la liberó.
+      if (await iniciarSeguimiento()) setSeguimiento('activo');
     } catch {
       setAviso('No pudimos iniciar el seguimiento. Revisa el GPS e inténtalo de nuevo.');
     } finally {
