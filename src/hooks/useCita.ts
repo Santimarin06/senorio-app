@@ -5,10 +5,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   cancelarCita,
+  elegirDevolucion,
   getCitaById,
   getMisCitas,
   getMisMultasPendientes,
   getMultaPendienteTotal,
+  reagendarCita,
   reservarCita,
   type NuevaReserva,
 } from '@/services/citas.api';
@@ -84,6 +86,34 @@ export const useCancelarCita = () => {
         queryClient.invalidateQueries({ queryKey: ['citas'] }),
         queryClient.invalidateQueries({ queryKey: ['disponibilidad'] }),
       ]);
+    },
+  });
+};
+
+/**
+ * RF-14: reagendar. Al terminar (bien o mal) refresca citas y disponibilidad: la franja vieja
+ * queda libre, la nueva ocupada, o la que eligió se ocupó mientras tanto.
+ */
+export const useReagendarCita = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, inicio }: { id: string; inicio: string }) => reagendarCita(id, inicio),
+    onSettled: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['citas'] }),
+        queryClient.invalidateQueries({ queryKey: ['disponibilidad'] }),
+      ]);
+    },
+  });
+};
+
+/** RN-16: elegir la devolución del sobrante. Refresca la cita (y la lista). */
+export const useElegirDevolucion = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => elegirDevolucion(id),
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['citas'] });
     },
   });
 };

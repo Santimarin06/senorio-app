@@ -192,3 +192,28 @@ export function calcularSemana(e: EntradaSemana): DiaDisponibilidad[] {
     });
   });
 }
+
+/**
+ * RF-14: quita de lo ocupado la cita que se está reagendando (mismo inicio y fin), para que
+ * el cliente pueda moverla a una franja que se cruza con su horario actual. La base lo
+ * permite porque libera la franja original antes de crear la nueva.
+ */
+export function sinIntervalo<T extends { inicio: string; fin: string }>(
+  ocupadas: readonly T[],
+  excluir: { inicio: string; fin: string } | null,
+): T[] {
+  if (!excluir) return [...ocupadas];
+  const inicio = Date.parse(excluir.inicio);
+  const fin = Date.parse(excluir.fin);
+  return ocupadas.filter((o) => Date.parse(o.inicio) !== inicio || Date.parse(o.fin) !== fin);
+}
+
+/** true si la franja elegida sigue libre en la semana calculada (otro cliente pudo tomarla). */
+export const franjaLibre = (
+  dias: readonly DiaDisponibilidad[],
+  fecha: string,
+  inicioMin: number,
+): boolean =>
+  dias.some(
+    (d) => d.fecha === fecha && d.franjas.some((f) => f.inicioMin === inicioMin && f.estado === 'libre'),
+  );

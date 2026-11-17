@@ -8,7 +8,7 @@ import {
   consecuenciaCancelacion,
   puedeReagendarNoAsistida,
 } from '@/lib/finanzas';
-import type { EstadoCita } from '@/types/entidades';
+import type { DevolucionPendiente, EstadoCita } from '@/types/entidades';
 
 export interface EfectoRevision {
   /** Anticipo aprobado de la cita si se confirma el comprobante. */
@@ -103,4 +103,34 @@ export function plazoNoAsistida(inicioIso: string, ahoraMs: number): { enPlazo: 
     enPlazo: puedeReagendarNoAsistida(fechaCita, hoy),
     hasta: sumarDias(fechaCita, FINANZAS.PLAZO_REAGENDAR_NO_ASISTIDA_DIAS),
   };
+}
+
+/**
+ * RF-28, RN-16 y D-27: lista de devoluciones del administrador, una por cita.
+ * - Suma los aprobados de la misma cita: una cita reagendada puede tener el anticipo
+ *   trasladado y el pago de la diferencia (D-45).
+ * - Una no asistida dentro del plazo de 2 días solo aparece si el cliente eligió la
+ *   devolución; si no eligió, aparece cuando vence el plazo (devolución pendiente, D-27).
+ * Ordena de la cita más antigua a la más reciente.
+ */
+export function agruparDevoluciones(
+  filas: readonly DevolucionPendiente[],
+  ahoraMs: number,
+): DevolucionPendiente[] {
+  const porCita = new Map<string, DevolucionPendiente>();
+  for (const f of filas) {
+    const previa = porCita.get(f.cita.id);
+    porCita.set(
+      f.cita.id,
+      previa ? { ...previa, anticipoAprobado: previa.anticipoAprobado + f.anticipoAprobado } : { ...f },
+    );
+  }
+  return [...porCita.values()]
+    .filter(
+      (d) =>
+        d.cita.estado !== 'no_asistida' ||
+        d.devolucionElegidaEn !== null ||
+        !plazoNoAsistida(d.cita.inicio, ahoraMs).enPlazo,
+    )
+    .sort((a, b) => Date.parse(a.cita.inicio) - Date.parse(b.cita.inicio));
 }

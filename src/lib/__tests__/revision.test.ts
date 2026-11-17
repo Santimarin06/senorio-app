@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
+  agruparDevoluciones,
   desgloseDevolucion,
   efectoRevision,
   NOTA_RECHAZO_MAX,
@@ -93,5 +94,56 @@ describe('plazoNoAsistida (RN-16, D-27)', () => {
     expect(plazoNoAsistida(inicio, Date.parse('2026-11-20T04:00:00Z')).enPlazo).toBe(true);
     // 20 nov, 12:30 a. m. de Bogotá.
     expect(plazoNoAsistida(inicio, Date.parse('2026-11-20T05:30:00Z')).enPlazo).toBe(false);
+  });
+});
+
+describe('agruparDevoluciones (RF-28, RN-16, D-27, D-45)', () => {
+  // Martes 17 de noviembre de 2026, 10:00 a. m. en Bogotá.
+  const ahora = Date.parse('2026-11-17T15:00:00Z');
+  const fila = (
+    comprobanteId: string,
+    citaId: string,
+    estado: 'cancelada_a_tiempo' | 'no_asistida',
+    inicio: string,
+    monto: number,
+    devolucionElegidaEn: string | null = null,
+  ) => ({
+    comprobanteId,
+    anticipoAprobado: monto,
+    devolucionElegidaEn,
+    cliente: 'Ana',
+    telefono: '',
+    cita: { id: citaId, inicio, estado, total: 35_000, profesional: 'Mario' },
+  });
+
+  it('suma traslado y diferencia de la misma cita', () => {
+    const r = agruparDevoluciones(
+      [
+        fila('t', 'c1', 'cancelada_a_tiempo', '2026-11-20T15:00:00Z', 5_000),
+        fila('p', 'c1', 'cancelada_a_tiempo', '2026-11-20T15:00:00Z', 5_000),
+      ],
+      ahora,
+    );
+    expect(r).toHaveLength(1);
+    expect(r[0]?.anticipoAprobado).toBe(10_000);
+  });
+
+  it('una no asistida en plazo solo aparece si el cliente eligió la devolución', () => {
+    const enPlazo = fila('a', 'c2', 'no_asistida', '2026-11-16T15:00:00Z', 15_000);
+    expect(agruparDevoluciones([enPlazo], ahora)).toHaveLength(0);
+    expect(
+      agruparDevoluciones([{ ...enPlazo, devolucionElegidaEn: '2026-11-16T20:00:00Z' }], ahora),
+    ).toHaveLength(1);
+  });
+
+  it('vencido el plazo queda como devolución pendiente y se ordena por fecha', () => {
+    const r = agruparDevoluciones(
+      [
+        fila('b', 'c3', 'cancelada_a_tiempo', '2026-11-20T15:00:00Z', 20_000),
+        fila('a', 'c2', 'no_asistida', '2026-11-13T15:00:00Z', 15_000),
+      ],
+      ahora,
+    );
+    expect(r.map((d) => d.cita.id)).toEqual(['c2', 'c3']);
   });
 });

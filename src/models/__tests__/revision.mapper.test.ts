@@ -38,7 +38,16 @@ describe('mapComprobanteRevision (RF-28)', () => {
       archivoPath: 'u1/c1-1.jpg',
       cliente: 'Santiago Ruiz',
       cita: { id: 'c1', inicio: cita.inicio, estado: 'cancelada_tarde', total: 65000, profesional: 'Mario' },
+      anticipoAprobadoCita: 0,
     });
+  });
+
+  it('suma lo ya aprobado de la cita, como el anticipo trasladado (D-45)', () => {
+    const conTraslado = mapComprobanteRevision({
+      ...comprobante,
+      citas: { ...cita, comprobantes: [{ monto: 5000, estado: 'aprobado' }, { monto: 5000, estado: 'pendiente' }] },
+    });
+    expect(conTraslado?.anticipoAprobadoCita).toBe(5000);
   });
 
   it('sin cita se descarta y un medio desconocido queda en null', () => {
@@ -69,6 +78,7 @@ describe('mapDevolucionPendiente (RF-28)', () => {
     expect(mapDevolucionPendiente(comprobante)).toMatchObject({
       comprobanteId: 'k1',
       anticipoAprobado: 20000,
+      devolucionElegidaEn: null,
       telefono: '3001234567',
     });
   });

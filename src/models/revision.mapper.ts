@@ -20,9 +20,18 @@ import type {
 
 const CITA = 'citas(id,inicio,estado,total,profesionales(nombre))';
 
-/** Columnas del comprobante. perfiles!cliente_id: la tabla tiene dos llaves a perfiles. */
+/**
+ * Columnas del comprobante. perfiles!cliente_id: la tabla tiene dos llaves a perfiles. La cita
+ * trae sus aprobados: con anticipo trasladado (D-45) el saldo debe contarlos.
+ */
 export const SELECT_COMPROBANTE_REVISION =
-  `id,tipo,monto,metodo,subido_en,archivo_path,cliente:perfiles!cliente_id(nombre,telefono),${CITA}`;
+  'id,tipo,monto,metodo,subido_en,archivo_path,cliente:perfiles!cliente_id(nombre,telefono),' +
+  'citas(id,inicio,estado,total,profesionales(nombre),comprobantes(monto,estado))';
+
+/** Devoluciones (RF-28): la cita con !inner (para filtrar por su estado) y la elección del cliente. */
+export const SELECT_DEVOLUCION =
+  'id,tipo,monto,metodo,subido_en,archivo_path,cliente:perfiles!cliente_id(nombre,telefono),' +
+  'citas!inner(id,inicio,estado,total,devolucion_elegida_en,profesionales(nombre))';
 
 export const SELECT_MULTA_REVISION =
   `id,motivo,monto,estado,resuelta_en,cliente:perfiles!cliente_id(nombre),${CITA}`;
@@ -65,6 +74,9 @@ export const mapComprobanteRevision = (f: ComprobanteRevisionRespuesta): Comprob
         archivoPath: f.archivo_path,
         cliente: nombreCliente(f.cliente),
         cita: mapCitaRevision(f.citas),
+        anticipoAprobadoCita: (f.citas.comprobantes ?? [])
+          .filter((x) => x.estado === 'aprobado')
+          .reduce((suma, x) => suma + Math.round(x.monto), 0),
       }
     : null;
 
@@ -88,6 +100,7 @@ export const mapDevolucionPendiente = (f: ComprobanteRevisionRespuesta): Devoluc
     ? {
         comprobanteId: f.id,
         anticipoAprobado: Math.round(f.monto),
+        devolucionElegidaEn: f.citas.devolucion_elegida_en ?? null,
         cliente: nombreCliente(f.cliente),
         telefono: f.cliente?.telefono ?? '',
         cita: mapCitaRevision(f.citas),

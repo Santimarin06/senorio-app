@@ -3,11 +3,22 @@ import { isAxiosError } from 'axios';
 
 import { esUuid } from '@/lib/ids';
 import { mapCancelacion } from '@/models/cancelacion.mapper';
-import { mapCita, SELECT_CITA } from '@/models/cita.mapper';
+import { mapCita, mapReagendar, SELECT_CITA } from '@/models/cita.mapper';
 import { mapMultaRevision, SELECT_MULTA_REVISION, sinNulos } from '@/models/revision.mapper';
 import { supabaseApi } from '@/services/api/supabase-api';
-import type { CancelacionRespuesta, CitaRespuesta, MultaRevisionRespuesta } from '@/types/api';
-import type { Cita, MultaRevision, ResultadoCancelacionBase } from '@/types/entidades';
+import type {
+  CancelacionRespuesta,
+  CitaRespuesta,
+  EleccionDevolucionRespuesta,
+  MultaRevisionRespuesta,
+  ReagendarRespuesta,
+} from '@/types/api';
+import type {
+  Cita,
+  MultaRevision,
+  ResultadoCancelacionBase,
+  ResultadoReagendar,
+} from '@/types/entidades';
 
 /** Detalle por id. Devuelve null si el id no existe o el usuario no puede verla (RLS). */
 export const getCitaById = async (id: string): Promise<Cita | null> => {
@@ -87,4 +98,31 @@ export const cancelarCita = async (id: string): Promise<ResultadoCancelacionBase
     p_cita_id: id,
   });
   return mapCancelacion(data);
+};
+
+/**
+ * RF-14: reagenda con la función reagendar_cita (D-30, D-45). La base libera la franja
+ * original, crea la nueva y traslada el anticipo en una sola transacción; si la franja choca
+ * no cambia nada. Es idempotente: un reintento sin conexión devuelve la misma cita nueva.
+ */
+export const reagendarCita = async (id: string, inicio: string): Promise<ResultadoReagendar> => {
+  const { data } = await supabaseApi.post<ReagendarRespuesta>('/rpc/reagendar_cita', {
+    p_cita_id: id,
+    p_inicio: inicio,
+  });
+  return mapReagendar(data);
+};
+
+/**
+ * RN-16: el cliente elige la devolución del sobrante de una cita no asistida. Devuelve el
+ * momento guardado por la base (null si no lo confirmó) y el monto a devolver.
+ */
+export const elegirDevolucion = async (
+  id: string,
+): Promise<{ elegidaEn: string; devolucion: number }> => {
+  const { data } = await supabaseApi.post<EleccionDevolucionRespuesta>('/rpc/elegir_devolucion', {
+    p_cita_id: id,
+  });
+  if (!data.devolucion_elegida_en) throw new Error('La base no confirmó tu elección.');
+  return { elegidaEn: data.devolucion_elegida_en, devolucion: Math.round(data.devolucion) };
 };

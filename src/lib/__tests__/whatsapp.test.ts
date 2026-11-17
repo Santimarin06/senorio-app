@@ -1,6 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { enlaceWhatsApp, mensajeCancelacion, mensajeMulta, mensajeReserva } from '@/lib/whatsapp';
+import {
+  enlaceWhatsApp,
+  mensajeCancelacion,
+  mensajeMulta,
+  mensajeReagendamiento,
+  mensajeReserva,
+} from '@/lib/whatsapp';
 
 describe('WhatsApp (RF-07)', () => {
   const mensaje = mensajeReserva({
@@ -85,5 +91,33 @@ describe('mensajeMulta (RF-15)', () => {
   it('pide resolverla para volver a reservar', () => {
     expect(m).toMatch(/multa pendiente/);
     expect(m).toMatch(/volver a reservar/);
+  });
+});
+
+describe('mensajeReagendamiento (RF-07, RF-14)', () => {
+  const base = {
+    cliente: 'Ana',
+    profesional: 'Mario',
+    servicios: ['Corte clásico'],
+    total: 35000,
+    codigoAnterior: 'SB-AAAAAA',
+    codigoNuevo: 'SB-BBBBBB',
+    fechaAnterior: 'jueves 5 de noviembre, 1:30 p. m.',
+    fechaNueva: 'sábado 7 de noviembre, 10:30 a. m.',
+  };
+
+  it('cita futura: nombra ambos horarios y el anticipo que pasa', () => {
+    const m = mensajeReagendamiento({ ...base, anticipoTrasladado: 20000, diferencia: 0, noAsistida: false });
+    expect(m).toContain('Reagendé mi cita SB-AAAAAA');
+    expect(m).toContain('Horario anterior: jueves 5 de noviembre, 1:30 p. m.');
+    expect(m).toContain('Nuevo horario: sábado 7 de noviembre, 10:30 a. m. (cita SB-BBBBBB)');
+    expect(m).toContain('Anticipo que pasa a la nueva cita: $20.000.');
+    expect(m).not.toContain('Pagaré');
+  });
+
+  it('no asistida: aclara la diferencia hasta $10.000', () => {
+    const m = mensajeReagendamiento({ ...base, anticipoTrasladado: 5000, diferencia: 5000, noAsistida: true });
+    expect(m).toContain('Cita a la que no asistí');
+    expect(m).toContain('Pagaré $5.000 para completar el anticipo de $10.000.');
   });
 });

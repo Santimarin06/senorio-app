@@ -1,7 +1,7 @@
 // Hook propio del horario semanal (RF-04, disponibilidad semanal).
 // TanStack Query trae de Supabase lo ocupado de la semana; calcularSemana (función pura de
 // src/lib) decide qué franjas se muestran. La duración no va en la queryKey: cambiar de
-// servicios recalcula sin volver a pedir datos.
+// servicios recalcula sin volver a pedir datos. Lo usan reservar (RF-04) y reagendar (RF-14).
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
@@ -9,12 +9,11 @@ import {
   agruparPorDia,
   aBogota,
   calcularSemana,
+  sinIntervalo,
   type DiaDisponibilidad,
   type HorarioEspecial,
 } from '@/lib/disponibilidad';
-import { totalSeleccion } from '@/lib/reserva';
 import { getOcupacionSemana } from '@/services/disponibilidad.api';
-import type { Servicio } from '@/types/entidades';
 
 /** Las franjas cambian cuando otro cliente reserva: la caché dura poco. */
 const treintaSegundos = 30_000;
@@ -29,15 +28,18 @@ export interface DisponibilidadSemanal {
 
 /**
  * @param profesionalId profesional elegido.
- * @param servicios servicios elegidos: su duración sumada es la de cada franja (RN-03).
+ * @param duracionMin duración de la cita: la suma de sus servicios (RN-03).
  * @param lunes lunes de la semana a mostrar, 'YYYY-MM-DD' (usar lunesDe).
+ * @param excluir al reagendar (RF-14), la cita actual: su franja no cuenta como ocupada.
  */
 export function useDisponibilidadSemanal(
   profesionalId: string,
-  servicios: readonly Servicio[],
+  duracionMin: number,
   lunes: string,
+  excluir: { inicio: string; fin: string } | null = null,
 ): DisponibilidadSemanal {
-  const duracionMin = totalSeleccion(servicios).duracionMin;
+  const excluirInicio = excluir?.inicio ?? null;
+  const excluirFin = excluir?.fin ?? null;
 
   const consulta = useQuery({
     queryKey: ['disponibilidad', profesionalId, lunes],
@@ -60,12 +62,17 @@ export function useDisponibilidadSemanal(
       diasHabilitados: new Set(data.especiales.filter((d) => d.abierto).map((d) => d.fecha)),
       especiales,
       // franjas_ocupadas no distingue citas de bloqueos: para el cliente ambas son "ocupada".
-      citasPorDia: agruparPorDia(data.ocupadas),
+      citasPorDia: agruparPorDia(
+        sinIntervalo(
+          data.ocupadas,
+          excluirInicio && excluirFin ? { inicio: excluirInicio, fin: excluirFin } : null,
+        ),
+      ),
       bloqueosPorDia: {},
       // "Ahora" en hora de Bogotá, sin depender de la zona del teléfono.
       ahora: aBogota(new Date()),
     });
-  }, [data, duracionMin, lunes]);
+  }, [data, duracionMin, lunes, excluirInicio, excluirFin]);
 
   return {
     dias,
