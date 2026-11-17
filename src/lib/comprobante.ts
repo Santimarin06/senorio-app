@@ -1,21 +1,31 @@
 // Anticipo y comprobante (RF-13, RN-08, RN-09, D-28, D-38). Funciones puras: las pantallas
 // solo las llaman. Dinero en pesos COP enteros.
 import { COMPROBANTE, FINANZAS } from '@/config/negocio';
-import { validarAbono, type Validacion } from '@/lib/finanzas';
+import { rangoAnticipo, validarAbono, type Validacion } from '@/lib/finanzas';
 import type { Anticipo, Comprobante, TipoAnticipo } from '@/types/entidades';
 
 /** D-28: si la cita vale menos que el abono mínimo, la app no ofrece anticipo. */
 export const ofreceAnticipo = (totalCita: number): boolean => totalCita >= FINANZAS.ABONO_MINIMO;
 
-/** Monto del anticipo según lo elegido: el abono se valida con RN-08; el total es el total. */
-export function montoAnticipo(tipo: TipoAnticipo, entrada: unknown, totalCita: number): Validacion {
+/**
+ * Monto del anticipo según lo elegido: el abono se valida con RN-08; el total es lo que falta
+ * de la cita. trasladado es el anticipo que llegó de un reagendamiento (D-45).
+ */
+export function montoAnticipo(
+  tipo: TipoAnticipo,
+  entrada: unknown,
+  totalCita: number,
+  trasladado = 0,
+): Validacion {
   if (tipo === 'total') {
     if (!ofreceAnticipo(totalCita)) {
       return { ok: false, error: 'Esta cita no admite anticipo.' };
     }
-    return { ok: true, valor: totalCita };
+    const { maximo } = rangoAnticipo(totalCita, trasladado);
+    if (maximo <= 0) return { ok: false, error: 'Esta cita ya está pagada.' };
+    return { ok: true, valor: maximo };
   }
-  return validarAbono(entrada, totalCita);
+  return validarAbono(entrada, totalCita, trasladado);
 }
 
 export type TipoImagen = 'image/jpeg' | 'image/png';
@@ -117,22 +127,42 @@ export const rutaComprobante = (
   mime: TipoImagen,
 ): string => `${clienteId}/${citaId}-${ahoraMs}.${mime === 'image/png' ? 'png' : 'jpg'}`;
 
+/** Anticipo que llegó de un reagendamiento (D-45): filas aprobadas con trasladado. */
+export const montoTrasladado = (comprobantes: readonly Comprobante[]): number =>
+  comprobantes
+    .filter((c) => c.trasladado && c.estado === 'aprobado')
+    .reduce((suma, c) => suma + c.monto, 0);
+
 /**
- * Estado del anticipo (D-15). La base permite un solo comprobante no rechazado por cita, así
- * que si existe ese manda; si no, se muestra el rechazado más reciente; sin ninguno, sin anticipo.
+ * Estado del anticipo (D-15). La base permite un solo comprobante pagado por el cliente no
+ * rechazado por cita (D-45), así que si existe ese manda; si no, el rechazado más reciente;
+ * si no, el anticipo trasladado de un reagendamiento; sin ninguno, sin anticipo.
  */
 export function estadoAnticipo(comprobantes: readonly Comprobante[]): Anticipo {
-  const vigente = comprobantes.find((c) => c.estado !== 'rechazado');
+  const pagos = comprobantes.filter((c) => !c.trasladado);
+  const vigente = pagos.find((c) => c.estado !== 'rechazado');
   if (vigente) return { estado: vigente.estado, comprobante: vigente };
 
-  const rechazado = [...comprobantes].sort(
-    (a, b) => Date.parse(b.subidoEn) - Date.parse(a.subidoEn),
-  )[0];
-  return rechazado
-    ? { estado: 'rechazado', comprobante: rechazado }
+  const rechazado = [...pagos].sort((a, b) => Date.parse(b.subidoEn) - Date.parse(a.subidoEn))[0];
+  if (rechazado) return { estado: 'rechazado', comprobante: rechazado };
+
+  const traslado = comprobantes.find((c) => c.trasladado && c.estado === 'aprobado');
+  return traslado
+    ? { estado: 'aprobado', comprobante: traslado }
     : { estado: 'sin_anticipo', comprobante: null };
 }
 
-/** Se puede enviar un comprobante nuevo cuando no hay ninguno vigente (pendiente o aprobado). */
-export const puedeEnviarComprobante = (anticipo: Anticipo): boolean =>
-  anticipo.estado === 'sin_anticipo' || anticipo.estado === 'rechazado';
+/**
+ * Se puede enviar un comprobante nuevo cuando no hay uno pagado vigente (pendiente o
+ * aprobado) y aún falta algo por pagar dentro del rango de RN-08 / D-45.
+ */
+export function puedeEnviarComprobante(
+  anticipo: Anticipo,
+  totalCita: number,
+  trasladado = 0,
+): boolean {
+  const { minimo, maximo } = rangoAnticipo(totalCita, trasladado);
+  if (maximo < minimo) return false;
+  if (anticipo.estado === 'sin_anticipo' || anticipo.estado === 'rechazado') return true;
+  return anticipo.comprobante?.trasladado === true;
+}

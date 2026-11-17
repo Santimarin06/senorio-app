@@ -6,6 +6,7 @@ import {
   estadoAnticipo,
   formatoTamano,
   montoAnticipo,
+  montoTrasladado,
   ofreceAnticipo,
   puedeEnviarComprobante,
   rutaComprobante,
@@ -100,19 +101,21 @@ describe('estadoAnticipo (D-15)', () => {
     archivoPath: 'cli/a.jpg',
     metodo: 'nequi',
     subidoEn,
+    trasladado: false,
+    devolucionMonto: null,
   });
 
   it('sin comprobantes: sin anticipo', () => {
     const a = estadoAnticipo([]);
     expect(a).toEqual({ estado: 'sin_anticipo', comprobante: null });
-    expect(puedeEnviarComprobante(a)).toBe(true);
+    expect(puedeEnviarComprobante(a, 50_000)).toBe(true);
   });
 
   it('el vigente manda sobre los rechazados', () => {
     const pendiente = comprobante('pendiente', '2026-11-10T10:00:00Z');
     const a = estadoAnticipo([comprobante('rechazado', '2026-11-11T10:00:00Z'), pendiente]);
     expect(a).toEqual({ estado: 'pendiente', comprobante: pendiente });
-    expect(puedeEnviarComprobante(a)).toBe(false);
+    expect(puedeEnviarComprobante(a, 50_000)).toBe(false);
     expect(estadoAnticipo([comprobante('aprobado', '2026-11-10T10:00:00Z')]).estado).toBe(
       'aprobado',
     );
@@ -125,7 +128,50 @@ describe('estadoAnticipo (D-15)', () => {
     ]);
     expect(a.estado).toBe('rechazado');
     expect(a.comprobante?.id).toBe('nuevo');
-    expect(puedeEnviarComprobante(a)).toBe(true);
+    expect(puedeEnviarComprobante(a, 50_000)).toBe(true);
+  });
+});
+
+describe('anticipo trasladado al reagendar (D-45)', () => {
+  const traslado: Comprobante = {
+    id: 't',
+    tipo: 'abono',
+    monto: 5_000,
+    estado: 'aprobado',
+    notaRechazo: null,
+    archivoPath: 'cli/a.jpg',
+    metodo: 'nequi',
+    subidoEn: '2026-11-10T10:00:00Z',
+    trasladado: true,
+    devolucionMonto: null,
+  };
+
+  it('solo el traslado: cuenta como aprobado y deja pagar la diferencia', () => {
+    const a = estadoAnticipo([traslado]);
+    expect(a).toEqual({ estado: 'aprobado', comprobante: traslado });
+    expect(montoTrasladado([traslado])).toBe(5_000);
+    expect(puedeEnviarComprobante(a, 35_000, 5_000)).toBe(true);
+  });
+
+  it('el pago de la diferencia manda sobre el traslado', () => {
+    const pago: Comprobante = { ...traslado, id: 'p', estado: 'pendiente', trasladado: false };
+    const a = estadoAnticipo([traslado, pago]);
+    expect(a.comprobante?.id).toBe('p');
+    expect(puedeEnviarComprobante(a, 35_000, 5_000)).toBe(false);
+  });
+
+  it('con la cita pagada del todo no se envía otro', () => {
+    const a = estadoAnticipo([{ ...traslado, monto: 35_000 }]);
+    expect(puedeEnviarComprobante(a, 35_000, 35_000)).toBe(false);
+  });
+
+  it('el abono completa hasta $10.000 y el total es lo que falta', () => {
+    expect(montoAnticipo('abono', '4.000', 35_000, 5_000)).toEqual({
+      ok: false,
+      error: 'Para completar el anticipo paga al menos $5.000.',
+    });
+    expect(montoAnticipo('abono', '5.000', 35_000, 5_000)).toEqual({ ok: true, valor: 5_000 });
+    expect(montoAnticipo('total', '', 35_000, 5_000)).toEqual({ ok: true, valor: 30_000 });
   });
 });
 
