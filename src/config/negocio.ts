@@ -100,6 +100,7 @@ export const COMPROBANTE = {
 export const FOTOS = {
   bucket: 'fotos',
   carpetaProductos: 'productos',
+  carpetaProfesionales: 'profesionales',
   tamanoMaximoBytes: 5 * 1024 * 1024,
   calidad: 0.7,
 } as const;
@@ -112,6 +113,13 @@ export const GESTION = {
   duracionMaximaMin: 480,
   /** Tope de cordura para el precio en pesos (evita un cero de más). */
   precioMaximo: 5_000_000,
+  /** Cargo del profesional (RF-29), por ejemplo "Barbero senior". */
+  cargoMaximo: 40,
+} as const;
+
+/** Gestión de profesionales (RF-29): cuántas cuentas se listan a la vez al buscar. */
+export const GESTION_PROFESIONALES = {
+  cuentasVisibles: 8,
 } as const;
 
 /** Revisión del administrador (RF-25): cuántas multas resueltas se muestran en el historial. */

@@ -259,8 +259,8 @@ export const mensajeDeGestion = (error: unknown): string => {
       }
       if (c?.code === '42501' || estado === 403) return 'Solo el administrador puede cambiar el catálogo.';
       if (c?.code === '23514') return 'Algún dato no es válido. Revisa el formulario.';
-      // La función guardar_servicio todavía no existe en la base (migración sin aplicar).
-      if (c?.code === 'PGRST202') return 'La base aún no tiene la función para guardar servicios.';
+      // guardar_servicio o guardar_profesional todavía no existen en la base (migración sin aplicar).
+      if (c?.code === 'PGRST202') return 'La base aún no tiene la función para guardar este cambio (falta aplicar la migración).';
       const regla = textoDeRegla(error);
       if (regla) return regla;
       if (error instanceof Error && error.message.startsWith('No encontramos')) return error.message;
