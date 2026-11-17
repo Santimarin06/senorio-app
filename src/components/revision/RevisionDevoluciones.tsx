@@ -1,23 +1,21 @@
 // Pestaña Devoluciones de Revisión (RF-28, RN-15, RN-16, D-27): anticipos aprobados de citas
-// canceladas o no asistidas que aún no se devolvieron. El monto sale de desgloseDevolucion;
-// solo se muestra como devuelto cuando la base guardó devolucion_monto (RN-12).
+// canceladas o no asistidas que aún no se devolvieron, una por cita (agruparDevoluciones). Una
+// no asistida aparece cuando el cliente eligió la devolución o venció su plazo de 2 días. El
+// monto sale de desgloseDevolucion; solo se muestra como devuelto cuando la base lo guardó (RN-12).
 import { Alert, Text, View } from 'react-native';
 
 import Boton from '@/components/Boton';
 import EstadoPantalla from '@/components/EstadoPantalla';
 import { DatosCita, Fila } from '@/components/revision/PartesRevision';
-import { useAhora } from '@/hooks/useAgenda';
 import { useDevolucionesPendientes, useRegistrarDevolucion } from '@/hooks/useRevision';
 import { mensajeDeError, mensajeDeRevision } from '@/lib/errores';
-import { etiquetaDia } from '@/lib/fechas';
 import { formatoCOP } from '@/lib/finanzas';
-import { desgloseDevolucion, plazoNoAsistida, tieneDevolucion } from '@/lib/revision';
+import { desgloseDevolucion, tieneDevolucion } from '@/lib/revision';
 import type { DevolucionPendiente } from '@/types/entidades';
 
 export default function RevisionDevoluciones() {
   const consulta = useDevolucionesPendientes();
   const registrar = useRegistrarDevolucion();
-  const ahora = useAhora();
 
   if (consulta.isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando devoluciones…" />;
   if (consulta.isError) {
@@ -45,7 +43,7 @@ export default function RevisionDevoluciones() {
           text: 'Registrar',
           onPress: () =>
             registrar.mutate(
-              { comprobanteId: d.comprobanteId, monto },
+              { citaId: d.cita.id, monto },
               { onError: (e) => Alert.alert('No se guardó', mensajeDeRevision(e)) },
             ),
         },
@@ -58,11 +56,10 @@ export default function RevisionDevoluciones() {
         // La consulta solo trae estos estados; el guard mantiene el tipo estricto.
         if (!tieneDevolucion(d.cita.estado)) return null;
         const desglose = desgloseDevolucion(d.cita.estado, d.anticipoAprobado);
-        const plazo = d.cita.estado === 'no_asistida' ? plazoNoAsistida(d.cita.inicio, ahora) : null;
-        const guardando = registrar.isPending && registrar.variables.comprobanteId === d.comprobanteId;
+        const guardando = registrar.isPending && registrar.variables.citaId === d.cita.id;
 
         return (
-          <View key={d.comprobanteId} className="mb-4 rounded-xl border border-borde p-4">
+          <View key={d.cita.id} className="mb-4 rounded-xl border border-borde p-4">
             <Text className="font-titulo text-lg text-primary">{d.cliente}</Text>
             {d.telefono ? (
               <Text className="font-texto text-sm text-secondary">Tel. {d.telefono}</Text>
@@ -78,10 +75,10 @@ export default function RevisionDevoluciones() {
               <Fila etiqueta="Por devolver" valor={formatoCOP(desglose.devolucion)} />
             </View>
 
-            {plazo ? (
+            {d.cita.estado === 'no_asistida' ? (
               <Text className="mt-2 font-texto text-sm text-secondary">
-                {plazo.enPlazo
-                  ? `Puede reagendar con el sobrante hasta el ${etiquetaDia(plazo.hasta).largo}. Registra la devolución solo si el cliente la eligió.`
+                {d.devolucionElegidaEn
+                  ? 'El cliente eligió la devolución del sobrante.'
                   : 'Venció el plazo para reagendar sin que eligiera: la devolución queda pendiente.'}
               </Text>
             ) : null}
