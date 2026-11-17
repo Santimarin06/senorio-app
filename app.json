@@ -48,6 +48,13 @@
           "photosPermission": "Señorío Barber abre tus fotos solo para que elijas el comprobante de tu anticipo.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notificacion-icono.png",
+          "color": "#111111"
+        }
       ]
     ],
     "experiments": {
