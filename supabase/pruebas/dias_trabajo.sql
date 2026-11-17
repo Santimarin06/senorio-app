@@ -6,7 +6,7 @@
 -- jwt): upsert en dias_habilitados (on conflict por fecha), delete, e insert y delete en
 -- bloqueos. validar_horario_cita no se puede llamar desde la app (solo la usa reservar_cita),
 -- así que las reglas se comprueban con el rol del editor (reset role) y se vuelve al admin.
--- Necesita un perfil administrador, un cliente y un profesional activo.
+-- Necesita un perfil administrador y un cliente; crea su propio profesional.
 
 begin;
 
@@ -23,12 +23,22 @@ declare
 begin
   select id into v_admin from public.perfiles where rol = 'administrador' limit 1;
   select id into v_cliente from public.perfiles where rol = 'cliente' limit 1;
-  select id into v_prof from public.profesionales where activo order by nombre limit 1;
-  if v_admin is null or v_cliente is null or v_prof is null then
-    raise exception 'Falla: hacen falta un administrador, un cliente y un profesional.';
+  if v_admin is null or v_cliente is null then
+    raise exception 'Falla: hacen falta un administrador y un cliente.';
   end if;
+  -- Profesional propio de la prueba (se deshace con el rollback): los bloqueos reales de un
+  -- profesional no la afectan.
+  insert into public.profesionales (nombre, cargo) values ('Prueba días', 'Barbero')
+  returning id into v_prof;
   if exists (select 1 from public.festivos where fecha = v_lunes) then
     raise exception 'Falla: el lunes de prueba (%) es festivo; corre la prueba otro día.', v_lunes;
+  end if;
+  -- Datos reales que cambiarían el resultado: no es una falla de las reglas.
+  if exists (select 1 from public.dias_habilitados where fecha in (v_domingo, v_lunes))
+     or exists (select 1 from public.bloqueos where profesional_id is null
+                and tstzrange(inicio, fin, '[)') && tstzrange(v_domingo::timestamp at time zone 'America/Bogota',
+                                                              (v_lunes + 1)::timestamp at time zone 'America/Bogota', '[)')) then
+    raise exception 'Falla: el % o el % ya tienen una excepción o un bloqueo del local reales; corre la prueba otro día.', v_domingo, v_lunes;
   end if;
 
   -- 1. Domingo cerrado por defecto (RN-10).
