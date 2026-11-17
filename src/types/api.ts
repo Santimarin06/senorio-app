@@ -261,3 +261,18 @@ export interface MultaRevisionRespuesta {
 export interface UrlFirmadaRespuesta {
   signedURL: string;
 }
+
+/** Fila de notificaciones con su cita (RF-30, D-47). */
+export interface NotificacionRespuesta {
+  id: string;
+  tipo: string;
+  creada_en: string;
+  mostrada_en: string | null;
+  leida_en: string | null;
+  citas: {
+    id: string;
+    inicio: string;
+    cliente: { nombre: string } | null;
+    cita_servicios?: { nombre: string }[] | null;
+  } | null;
+}

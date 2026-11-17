@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { configurarManejador } from '@/services/notificaciones';
 import { restaurarSesion } from '@/services/sesion';
 import { useSesionStore } from '@/store/useSesionStore';
 
@@ -17,6 +18,9 @@ SplashScreen.preventAutoHideAsync();
 // La sesión guardada se lee una sola vez al abrir la app (RF-01): así la persona sigue dentro
 // después de cerrar y volver a abrir.
 void restaurarSesion();
+
+// Las notificaciones locales (RF-30) también se muestran con la app abierta.
+configurarManejador();
 
 const queryClient = new QueryClient({
   defaultOptions: {

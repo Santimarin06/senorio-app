@@ -1,10 +1,6 @@
-import PantallaPendiente from '@/components/PantallaPendiente';
+import Avisos from '@/components/pantallas/Avisos';
 
+// RF-30: avisos de citas nuevas, reagendadas y canceladas, y estado de los recordatorios.
 export default function AvisosScreen() {
-  return (
-    <PantallaPendiente
-      icono="notifications-outline"
-      mensaje="Aquí verás el recordatorio de cada cita y las citas nuevas que te reserven (RF-30)."
-    />
-  );
+  return <Avisos />;
 }

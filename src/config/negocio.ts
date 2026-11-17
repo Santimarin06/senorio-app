@@ -127,6 +127,21 @@ export const REVISION = {
   historialMultas: 20,
 } as const;
 
+/** Recordatorios y avisos del profesional (RF-30, D-10, D-47). */
+export const RECORDATORIOS = {
+  /** El recordatorio llega esta cantidad de minutos antes de la cita (SRS §3). */
+  minutosAntes: 30,
+  /** Se programan las citas de los próximos días (Android limita las alarmas por app). */
+  diasAdelante: 14,
+  /** Canal de Android de las notificaciones de citas. */
+  canalId: 'citas',
+  canalNombre: 'Citas',
+  /** Un aviso más viejo que esto ya no se muestra como notificación (solo en la lista). */
+  horasAvisoReciente: 24,
+  /** Avisos que lista la tab Avisos. */
+  avisosVisibles: 50,
+} as const;
+
 /** Ubicación de la barbería (D-03). */
 export const UBICACION_LOCAL: LatLng = {
   latitude: 4.812879019062988,

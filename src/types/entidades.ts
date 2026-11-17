@@ -297,3 +297,18 @@ export interface DevolucionPendiente {
   telefono: string;
   cita: CitaRevision;
 }
+
+/** Tipos de aviso que registra la base para el profesional (RF-30, D-47). */
+export type TipoAviso = 'cita_nueva' | 'cita_reagendada' | 'cita_cancelada';
+
+/** Aviso de la tab Avisos (RF-30). El texto se arma con la cita en src/lib/recordatorios.ts. */
+export interface Aviso {
+  id: string;
+  tipo: TipoAviso;
+  creadaEn: string;
+  /** Ya se mostró como notificación local en algún teléfono. */
+  mostrada: boolean;
+  leida: boolean;
+  /** Cita del aviso; null si la RLS no la deja ver. */
+  cita: { id: string; inicio: string; cliente: string; servicios: string[] } | null;
+}
