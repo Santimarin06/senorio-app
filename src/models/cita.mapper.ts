@@ -1,5 +1,5 @@
-import { estadoAnticipo } from '@/lib/comprobante';
-import type { CitaRespuesta, ComprobanteRespuesta } from '@/types/api';
+import { estadoAnticipo, montoTrasladado } from '@/lib/comprobante';
+import type { CitaRespuesta, ComprobanteRespuesta, ReagendarRespuesta } from '@/types/api';
 import type {
   Cita,
   Comprobante,
@@ -7,6 +7,7 @@ import type {
   EstadoCita,
   EstadoComprobante,
   MedioPago,
+  ResultadoReagendar,
 } from '@/types/entidades';
 
 const ESTADOS: readonly EstadoCita[] = [
@@ -49,8 +50,10 @@ export const ETIQUETA_ANTICIPO: Record<EstadoAnticipo, string> = {
 
 /** Columnas que pide la app: la misma consulta sirve para la lista y para el detalle. */
 export const SELECT_CITA =
-  'id,inicio,fin,estado,total,profesionales(nombre),cita_servicios(nombre,precio,duracion_min),' +
-  'comprobantes(id,tipo,monto,estado,nota_rechazo,archivo_path,metodo,subido_en)';
+  'id,inicio,fin,estado,total,profesional_id,reagendada_desde,devolucion_elegida_en,' +
+  'profesionales(nombre),cita_servicios(nombre,precio,duracion_min),' +
+  'comprobantes(id,tipo,monto,estado,nota_rechazo,archivo_path,metodo,subido_en,' +
+  'trasladado_desde,devolucion_monto)';
 
 const ESTADOS_COMPROBANTE: readonly EstadoComprobante[] = ['pendiente', 'aprobado', 'rechazado'];
 const MEDIOS: readonly MedioPago[] = ['nequi', 'bold', 'bancolombia'];
@@ -65,6 +68,8 @@ export const mapComprobante = (c: ComprobanteRespuesta): Comprobante => ({
   archivoPath: c.archivo_path,
   metodo: MEDIOS.find((m) => m === c.metodo) ?? null,
   subidoEn: c.subido_en,
+  trasladado: c.trasladado_desde != null,
+  devolucionMonto: c.devolucion_monto == null ? null : Math.round(c.devolucion_monto),
 });
 
 export const mapCita = (cita: CitaRespuesta): Cita => {
@@ -85,6 +90,29 @@ export const mapCita = (cita: CitaRespuesta): Cita => {
       .filter((c) => c.estado === 'aprobado')
       .reduce((suma, c) => suma + c.monto, 0),
     anticipo: estadoAnticipo(comprobantes),
+    profesionalId: cita.profesional_id,
+    anticipoTrasladado: montoTrasladado(comprobantes),
+    reagendadaDesde: cita.reagendada_desde ?? null,
+    devolucionElegidaEn: cita.devolucion_elegida_en ?? null,
+    devolucionRegistrada: comprobantes.some(
+      (c) => c.estado === 'aprobado' && c.devolucionMonto !== null,
+    ),
+  };
+};
+
+/**
+ * Respuesta de reagendar_cita (RF-14). Sin id de la cita nueva o con un caso desconocido se
+ * lanza un error: nunca se muestra como reagendada una cita que la base no confirmó (RN-14).
+ */
+export const mapReagendar = (r: ReagendarRespuesta): ResultadoReagendar => {
+  if (!r.cita_id || (r.caso !== 'futura' && r.caso !== 'no_asistida')) {
+    throw new Error('La base no confirmó el reagendamiento.');
+  }
+  return {
+    citaId: r.cita_id,
+    caso: r.caso,
+    anticipoTrasladado: Math.round(r.anticipo_trasladado),
+    diferencia: Math.round(r.diferencia),
   };
 };
 

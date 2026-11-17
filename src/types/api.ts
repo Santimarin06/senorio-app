@@ -67,6 +67,9 @@ export interface CitaRespuesta {
   fin: string;
   estado: string;
   total: number;
+  profesional_id: string;
+  reagendada_desde: string | null;
+  devolucion_elegida_en: string | null;
   profesionales: { nombre: string } | null;
   /** Servicios con el precio del momento de reservar (cita_servicios). */
   cita_servicios?: { nombre: string; precio: number; duracion_min: number }[] | null;
@@ -101,6 +104,23 @@ export interface ComprobanteRespuesta {
   archivo_path: string;
   metodo: string | null;
   subido_en: string;
+  /** Comprobante del que viene el anticipo trasladado (D-45); null si es un pago. */
+  trasladado_desde: string | null;
+  devolucion_monto: number | null;
+}
+
+/** Respuesta de la función reagendar_cita (RF-14, D-45). */
+export interface ReagendarRespuesta {
+  cita_id: string;
+  caso: string;
+  anticipo_trasladado: number;
+  diferencia: number;
+}
+
+/** Respuesta de la función elegir_devolucion (RN-16). */
+export interface EleccionDevolucionRespuesta {
+  devolucion_elegida_en: string | null;
+  devolucion: number;
 }
 
 /** Respuesta de la función cancelar_cita (RF-09): lo que quedó guardado en la base. */
@@ -180,6 +200,10 @@ export interface CitaRevisionRespuesta {
   inicio: string;
   estado: string;
   total: number;
+  /** Solo en la consulta de devoluciones (RN-16). */
+  devolucion_elegida_en?: string | null;
+  /** Solo en la consulta de comprobantes por revisar: los aprobados de la cita (D-45). */
+  comprobantes?: { monto: number; estado: string }[] | null;
   profesionales: { nombre: string } | null;
 }
 

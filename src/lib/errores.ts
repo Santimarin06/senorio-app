@@ -98,6 +98,47 @@ export const mensajeDeCancelacion = (error: unknown): string => {
   }
 };
 
+/** Mensajes de las funciones de la base que no llevan código de regla y se muestran tal cual. */
+const MENSAJES_REAGENDAR = [
+  'No encontramos esta cita.',
+  'La hora elegida ya pasó.',
+  'Elige un horario distinto al actual.',
+  'El profesional de esta cita ya no atiende. Habla con el local.',
+];
+
+/**
+ * Mensaje de reagendar_cita (RF-14). Si falla, la base no cambió nada: la cita sigue en su
+ * horario (RN-12, RN-14).
+ */
+export const mensajeDeReagendar = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. Tu cita sigue en su horario; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default: {
+      if (esFranjaTomada(error)) return 'Esa franja acaba de ser tomada. Elige otra; tu cita sigue igual.';
+      const regla = textoDeRegla(error);
+      if (regla) return regla;
+      const mensaje = cuerpo(error)?.message ?? '';
+      if (MENSAJES_REAGENDAR.includes(mensaje)) return mensaje;
+      return 'No pudimos reagendar la cita. Tu cita sigue igual; inténtalo de nuevo.';
+    }
+  }
+};
+
+/** Mensaje de elegir_devolucion (RN-16). Si falla, no quedó elegida. */
+export const mensajeDeEleccion = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. Tu elección no se guardó; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default:
+      return textoDeRegla(error) ?? 'No pudimos guardar tu elección. Inténtalo de nuevo.';
+  }
+};
+
 /**
  * Mensaje al marcar asistencia (RF-23). La pantalla no cambia nada si falla, así que el
  * mensaje aclara que la cita sigue igual (RN-12, RN-14).

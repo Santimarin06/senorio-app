@@ -82,8 +82,8 @@ function TarjetaComprobante({ comprobante: c, guardando, bloqueada, onRevisar }:
   const medio = MEDIOS_PAGO.find((m) => m.id === c.metodo)?.nombre;
   const esTotal = c.tipo === 'total';
   const tipoTexto = `${esTotal ? 'Pago total' : 'Abono'}${medio ? ` por ${medio}` : ''}`;
-  // Con un solo comprobante vigente por cita, uno pendiente implica que no hay otro aprobado.
-  const efecto = efectoRevision(c.cita.total, 0, c.monto);
+  // Lo ya aprobado de la cita es, como mucho, el anticipo trasladado de un reagendamiento (D-45).
+  const efecto = efectoRevision(c.cita.total, c.anticipoAprobadoCita, c.monto);
   const accion = esTotal ? 'Confirmar pago' : 'Confirmar abono';
 
   const confirmar = () =>

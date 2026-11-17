@@ -18,7 +18,7 @@ import { useElegirImagen } from '@/hooks/useElegirImagen';
 import { codigoCita } from '@/lib/codigoCita';
 import { montoAnticipo, ofreceAnticipo, puedeEnviarComprobante } from '@/lib/comprobante';
 import { mensajeDeComprobante, mensajeDeError } from '@/lib/errores';
-import { calcularSaldo, formatoCOP } from '@/lib/finanzas';
+import { calcularSaldo, formatoCOP, rangoAnticipo } from '@/lib/finanzas';
 import { ETIQUETA_ANTICIPO, ETIQUETA_ESTADO } from '@/models/cita.mapper';
 import type { Cita, MedioPago, TipoAnticipo } from '@/types/entidades';
 
@@ -54,7 +54,7 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
       />
     );
   }
-  if (!puedeEnviarComprobante(cita.anticipo)) {
+  if (!puedeEnviarComprobante(cita.anticipo, cita.total, cita.anticipoTrasladado)) {
     return (
       <PantallaPendiente
         icono="receipt-outline"
@@ -99,7 +99,7 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
   }
 
   const tipo: TipoAnticipo | null = opcion === 'sin' ? null : opcion;
-  const monto = tipo ? montoAnticipo(tipo, montoTexto, cita.total) : null;
+  const monto = tipo ? montoAnticipo(tipo, montoTexto, cita.total, cita.anticipoTrasladado) : null;
   const montoValido = monto?.ok ? monto.valor : null;
   // El error del monto aparece en cuanto se escribe algo o al intentar enviar.
   const errorMonto =
@@ -107,6 +107,9 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
       ? monto.error
       : undefined;
   const ocupado = enviar.isPending;
+  // D-45: con anticipo trasladado de un reagendamiento, el pago completa lo que falta.
+  const rango = rangoAnticipo(cita.total, cita.anticipoTrasladado);
+  const trasladado = cita.anticipoTrasladado;
   const rechazado = cita.anticipo.estado === 'rechazado' ? cita.anticipo.comprobante : null;
 
   const confirmar = () => {
@@ -140,6 +143,15 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
         Tu cita está confirmada. Elige si quieres adelantar una parte o pagar todo.
       </Text>
 
+      {trasladado > 0 ? (
+        <Text className="mb-4 font-texto text-base text-primary">
+          De tu cita anterior pasaron {formatoCOP(trasladado)}.{' '}
+          {trasladado < NEGOCIO.abonoMinimo
+            ? `Paga al menos ${formatoCOP(rango.minimo)} para completar el anticipo mínimo de ${formatoCOP(NEGOCIO.abonoMinimo)}.`
+            : 'Si quieres, adelanta otra parte.'}
+        </Text>
+      ) : null}
+
       {rechazado ? (
         <Text className="mb-4 font-texto text-sm text-peligro">
           Tu comprobante anterior fue rechazado
@@ -161,7 +173,7 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
       {opcion === 'sin' ? (
         <View className="my-4">
           <Text className="mb-4 font-texto text-base text-primary">
-            Sin anticipo pagas {formatoCOP(cita.total)} en el local el día de tu cita. No se guarda
+            Sin anticipo pagas {formatoCOP(calcularSaldo(cita.total, cita.anticipoAprobado))} en el local el día de tu cita. No se guarda
             nada nuevo.
           </Text>
           <Boton onPress={volver}>Volver a la cita</Boton>
@@ -181,8 +193,10 @@ export default function AnticipoCita({ cita }: { cita: Cita }) {
           ) : null}
           <Text className="mb-4 font-texto text-sm text-secondary">
             {opcion === 'abono'
-              ? `Mínimo ${formatoCOP(NEGOCIO.abonoMinimo)} · Máximo ${formatoCOP(cita.total)}`
-              : 'Pagas el valor completo de la cita.'}
+              ? `Mínimo ${formatoCOP(rango.minimo)} · Máximo ${formatoCOP(rango.maximo)}`
+              : trasladado > 0
+                ? `Pagas lo que falta de la cita: ${formatoCOP(rango.maximo)}.`
+                : 'Pagas el valor completo de la cita.'}
           </Text>
 
           <View className="mb-6 rounded-xl border border-borde p-4">

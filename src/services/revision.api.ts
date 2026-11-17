@@ -5,12 +5,13 @@
 // la fila de vuelta: si no vuelve, otra persona ya la resolvió y nada se muestra como hecho (RN-12).
 import { COMPROBANTE, REVISION } from '@/config/negocio';
 import { env } from '@/config/env';
-import { ESTADOS_CON_DEVOLUCION } from '@/lib/revision';
+import { agruparDevoluciones, ESTADOS_CON_DEVOLUCION } from '@/lib/revision';
 import {
   mapComprobanteRevision,
   mapDevolucionPendiente,
   mapMultaRevision,
   SELECT_COMPROBANTE_REVISION,
+  SELECT_DEVOLUCION,
   SELECT_MULTA_REVISION,
   sinNulos,
 } from '@/models/revision.mapper';
@@ -104,42 +105,30 @@ export const resolverMulta = async (id: string, estado: Resolucion): Promise<voi
 };
 
 /**
- * RF-28: anticipos aprobados de citas canceladas o no asistidas sin devolución registrada.
- * citas!inner: el filtro por estado de la cita deja fuera los comprobantes de otras citas.
+ * RF-28: anticipos aprobados de citas canceladas o no asistidas sin devolución registrada,
+ * una fila por cita (agruparDevoluciones). citas!inner: el filtro por estado de la cita deja
+ * fuera los comprobantes de otras citas.
  */
 export const getDevolucionesPendientes = async (): Promise<DevolucionPendiente[]> => {
   const { data } = await supabaseApi.get<ComprobanteRevisionRespuesta[]>('/comprobantes', {
     params: {
-      select: SELECT_COMPROBANTE_REVISION.replace('citas(', 'citas!inner('),
+      select: SELECT_DEVOLUCION,
       estado: 'eq.aprobado',
       devolucion_monto: 'is.null',
       'citas.estado': `in.(${ESTADOS_CON_DEVOLUCION.join(',')})`,
     },
   });
-  return sinNulos(data.map(mapDevolucionPendiente)).sort(
-    (a, b) => Date.parse(a.cita.inicio) - Date.parse(b.cita.inicio),
-  );
+  return agruparDevoluciones(sinNulos(data.map(mapDevolucionPendiente)), Date.now());
 };
 
-/** RF-28: registra el monto devuelto; el trigger fija devuelto_en. Solo si no estaba registrada. */
-export const registrarDevolucion = async (comprobanteId: string, monto: number): Promise<void> => {
-  const { data } = await supabaseApi.patch<
-    { id: string; devolucion_monto: number | null; devuelto_en: string | null }[]
-  >(
-    '/comprobantes',
-    { devolucion_monto: monto },
-    {
-      params: {
-        id: `eq.${comprobanteId}`,
-        estado: 'eq.aprobado',
-        devolucion_monto: 'is.null',
-        select: 'id,devolucion_monto,devuelto_en',
-      },
-      headers: { Prefer: 'return=representation' },
-    },
-  );
-  const fila = data[0];
-  if (fila?.devolucion_monto !== monto || !fila.devuelto_en) {
-    throw new Error('Esta devolución ya estaba registrada.');
-  }
+/**
+ * RF-28: registra el monto devuelto de una cita con la función registrar_devolucion, que lo
+ * reparte entre sus aprobados en una sola transacción. Solo si no estaba registrada.
+ */
+export const registrarDevolucion = async (citaId: string, monto: number): Promise<void> => {
+  const { data } = await supabaseApi.post<number>('/rpc/registrar_devolucion', {
+    p_cita_id: citaId,
+    p_monto: monto,
+  });
+  if (data !== monto) throw new Error('La base no confirmó la devolución.');
 };

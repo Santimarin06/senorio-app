@@ -5,11 +5,15 @@ import { ScrollView, Text, View } from 'react-native';
 
 import Boton from '@/components/Boton';
 import ConCita from '@/components/pantallas/ConCita';
+import EleccionNoAsistencia from '@/components/pantallas/EleccionNoAsistencia';
+import { NEGOCIO } from '@/config/negocio';
 import { useIdDeRuta } from '@/hooks/useIdDeRuta';
 import { estadoVisible } from '@/lib/agenda';
 import { puedeCancelar } from '@/lib/cancelacion';
+import { codigoCita } from '@/lib/codigoCita';
+import { puedeEnviarComprobante } from '@/lib/comprobante';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
-import { calcularSaldo, formatoCOP } from '@/lib/finanzas';
+import { calcularSaldo, formatoCOP, rangoAnticipo } from '@/lib/finanzas';
 import { ETIQUETA_ANTICIPO, ETIQUETA_ESTADO } from '@/models/cita.mapper';
 
 export default function DetalleCitaScreen() {
@@ -20,7 +24,14 @@ export default function DetalleCitaScreen() {
       {(cita) => {
         const vigente = cita.estado === 'confirmada' && Date.parse(cita.inicio) > Date.now();
         const saldo = calcularSaldo(cita.total, cita.anticipoAprobado);
-        const conComprobante = cita.anticipo.estado !== 'sin_anticipo';
+        // D-45: con solo el anticipo trasladado, el botón lleva a pagar lo que falta.
+        const soloTraslado = cita.anticipo.comprobante?.trasladado === true;
+        const conComprobante = cita.anticipo.estado !== 'sin_anticipo' && !soloTraslado;
+        const faltaAnticipo =
+          soloTraslado && puedeEnviarComprobante(cita.anticipo, cita.total, cita.anticipoTrasladado)
+            ? rangoAnticipo(cita.total, cita.anticipoTrasladado).minimo
+            : 0;
+        const faltaMinimo = cita.anticipoAprobado < NEGOCIO.abonoMinimo ? faltaAnticipo : 0;
 
         return (
           <ScrollView className="flex-1 bg-fondo" contentContainerStyle={{ padding: 24 }}>
@@ -34,6 +45,20 @@ export default function DetalleCitaScreen() {
             <Text className="font-texto text-base text-primary">
               Anticipo: {ETIQUETA_ANTICIPO[cita.anticipo.estado]}
             </Text>
+            {cita.reagendadaDesde ? (
+              <Text className="font-texto text-sm text-secondary">
+                Reagendada desde {codigoCita(cita.reagendadaDesde)}
+                {cita.anticipoTrasladado > 0
+                  ? ` · pasaron ${formatoCOP(cita.anticipoTrasladado)} de anticipo`
+                  : ''}
+              </Text>
+            ) : null}
+            {vigente && faltaMinimo > 0 ? (
+              <Text className="mt-2 font-texto text-sm text-peligro">
+                Falta pagar {formatoCOP(faltaMinimo)} para completar el anticipo de{' '}
+                {formatoCOP(NEGOCIO.abonoMinimo)}.
+              </Text>
+            ) : null}
 
             <View className="my-6 rounded-xl border border-borde p-4">
               {cita.servicios.map((s) => (
@@ -70,7 +95,13 @@ export default function DetalleCitaScreen() {
                     })
                   }
                 >
-                  {conComprobante ? 'Ver comprobante' : 'Pagar anticipo'}
+                  {conComprobante
+                    ? 'Ver comprobante'
+                    : faltaMinimo > 0
+                      ? `Pagar ${formatoCOP(faltaMinimo)}`
+                      : soloTraslado
+                        ? 'Adelantar otra parte'
+                        : 'Pagar anticipo'}
                 </Boton>
                 <Boton
                   variante="borde"
@@ -81,6 +112,8 @@ export default function DetalleCitaScreen() {
                 </Boton>
               </>
             ) : null}
+            {/* RN-16: qué pasa con el anticipo de una cita no asistida. */}
+            {cita.estado === 'no_asistida' ? <EleccionNoAsistencia cita={cita} /> : null}
             {/* RF-09: mismo criterio que la función cancelar_cita de la base. */}
             {puedeCancelar(cita, Date.now()) ? (
               <Boton

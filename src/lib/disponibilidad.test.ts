@@ -11,6 +11,8 @@ import {
   instanteDeFranja,
   lunesDe,
   partirPorAlmuerzo,
+  franjaLibre,
+  sinIntervalo,
 } from './disponibilidad';
 import { etiquetaDia, formatoHora } from './fechas';
 
@@ -262,5 +264,35 @@ describe('apoyo para la pantalla de horario', () => {
     expect(formatoHora(hm(12, 30))).toBe('12:30 p. m.');
     expect(formatoHora(hm(19, 30))).toBe('7:30 p. m.');
     expect(etiquetaDia('2026-11-17')).toEqual({ corto: 'mar', numero: 17, largo: 'martes 17 de noviembre' });
+  });
+});
+
+describe('reagendar (RF-14)', () => {
+  const ocupadas = [
+    { inicio: '2026-12-01T20:00:00Z', fin: '2026-12-01T20:30:00Z' },
+    { inicio: '2026-12-01T21:00:00Z', fin: '2026-12-01T21:30:00Z' },
+  ];
+
+  it('sinIntervalo quita solo la cita que se reagenda', () => {
+    expect(sinIntervalo(ocupadas, { inicio: '2026-12-01T20:00:00.000Z', fin: '2026-12-01T20:30:00Z' })).toEqual([
+      ocupadas[1],
+    ]);
+    expect(sinIntervalo(ocupadas, null)).toEqual(ocupadas);
+  });
+
+  it('franjaLibre revisa fecha, hora y estado', () => {
+    const dias = [
+      {
+        fecha: '2026-12-01',
+        abierto: true,
+        franjas: [
+          { inicioMin: 900, finMin: 930, estado: 'libre' as const },
+          { inicioMin: 915, finMin: 945, estado: 'ocupada' as const },
+        ],
+      },
+    ];
+    expect(franjaLibre(dias, '2026-12-01', 900)).toBe(true);
+    expect(franjaLibre(dias, '2026-12-01', 915)).toBe(false);
+    expect(franjaLibre(dias, '2026-12-02', 900)).toBe(false);
   });
 });

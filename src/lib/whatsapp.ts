@@ -53,6 +53,46 @@ export function mensajeCancelacion(d: DatosAvisoCancelacion): string {
   ].join('\n');
 }
 
+export interface DatosAvisoReagendamiento {
+  cliente: string;
+  profesional: string;
+  servicios: string[];
+  total: number;
+  /** Códigos visibles (D-35) de la cita original y de la nueva. */
+  codigoAnterior: string;
+  codigoNuevo: string;
+  /** Fechas y horas ya en texto de Bogotá. */
+  fechaAnterior: string;
+  fechaNueva: string;
+  /** Anticipo que pasó a la nueva cita (D-45). */
+  anticipoTrasladado: number;
+  /** Lo que falta pagar para completar el anticipo mínimo (RN-16). */
+  diferencia: number;
+  /** true si la cita original fue una no asistencia. */
+  noAsistida: boolean;
+}
+
+/** RF-07 y RF-14: aviso de un reagendamiento que la base ya registró. */
+export function mensajeReagendamiento(d: DatosAvisoReagendamiento): string {
+  return [
+    `Hola, ${NEGOCIO.nombre}. Reagendé mi cita ${d.codigoAnterior} en la app.`,
+    `Cliente: ${d.cliente}`,
+    `Profesional: ${d.profesional}`,
+    `Servicios: ${d.servicios.join(', ')}`,
+    d.noAsistida
+      ? `Cita a la que no asistí: ${d.fechaAnterior}`
+      : `Horario anterior: ${d.fechaAnterior}`,
+    `Nuevo horario: ${d.fechaNueva} (cita ${d.codigoNuevo})`,
+    `Valor: ${formatoCOP(d.total)}`,
+    ...(d.anticipoTrasladado > 0
+      ? [`Anticipo que pasa a la nueva cita: ${formatoCOP(d.anticipoTrasladado)}.`]
+      : []),
+    ...(d.diferencia > 0
+      ? [`Pagaré ${formatoCOP(d.diferencia)} para completar el anticipo de ${formatoCOP(NEGOCIO.abonoMinimo)}.`]
+      : []),
+  ].join('\n');
+}
+
 export interface DatosCotizacion {
   productos: { nombre: string; precio: number; cantidad: number }[];
   /** Cita asociada (opcional): código SB-xxxxxx, fecha y hora en texto de Bogotá y profesional. */

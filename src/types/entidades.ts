@@ -92,6 +92,24 @@ export interface Cita {
   anticipoAprobado: number;
   /** Estado del anticipo y el comprobante que lo respalda (D-15). */
   anticipo: Anticipo;
+  profesionalId: string;
+  /** Parte del anticipo aprobado que llegó de la cita reagendada (D-45). */
+  anticipoTrasladado: number;
+  /** Cita de la que viene, si es un reagendamiento (RF-14). */
+  reagendadaDesde: string | null;
+  /** Momento en que el cliente eligió devolución tras no asistir (RN-16); null si no eligió. */
+  devolucionElegidaEn: string | null;
+  /** true si el administrador ya registró la devolución del anticipo (RF-28). */
+  devolucionRegistrada: boolean;
+}
+
+/** Resultado de reagendar según la base (RF-14, D-45). */
+export interface ResultadoReagendar {
+  citaId: string;
+  caso: 'futura' | 'no_asistida';
+  anticipoTrasladado: number;
+  /** Lo que falta pagar para llegar al abono mínimo (solo en una no asistida). */
+  diferencia: number;
 }
 
 /** Cita vista desde el panel (RF-21, RF-22): con el cliente y sin el detalle del comprobante. */
@@ -134,6 +152,10 @@ export interface Comprobante {
   metodo: MedioPago | null;
   /** Instante UTC (ISO) en que se subió la imagen vigente. */
   subidoEn: string;
+  /** true si es el anticipo que pasó de la cita reagendada (D-45), no un pago nuevo. */
+  trasladado: boolean;
+  /** Devolución que registró el administrador (RF-28); null si aún no hay. */
+  devolucionMonto: number | null;
 }
 
 export interface Anticipo {
@@ -215,6 +237,8 @@ export interface ComprobanteRevision {
   archivoPath: string;
   cliente: string;
   cita: CitaRevision;
+  /** Anticipo ya aprobado de la cita, por ejemplo el trasladado de un reagendamiento (D-45). */
+  anticipoAprobadoCita: number;
 }
 
 export type MotivoMulta = 'no_asistio' | 'cancelo_tarde';
@@ -232,8 +256,12 @@ export interface MultaRevision {
 
 /** Anticipo aprobado de una cita cancelada o no asistida que aún no se devolvió (RF-28). */
 export interface DevolucionPendiente {
+  /** Uno de los comprobantes de la cita (una reagendada puede tener traslado y diferencia). */
   comprobanteId: string;
+  /** Suma de los aprobados sin devolución de la cita. */
   anticipoAprobado: number;
+  /** Momento en que el cliente eligió la devolución tras no asistir (RN-16); null si no eligió. */
+  devolucionElegidaEn: string | null;
   cliente: string;
   telefono: string;
   cita: CitaRevision;

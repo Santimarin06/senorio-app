@@ -5,12 +5,14 @@ import { describe, expect, it } from '@jest/globals';
 import {
   calcularCancelacion,
   calcularNoAsistencia,
+  calcularOpcionesNoAsistencia,
   calcularSaldo,
   calcularTotalCita,
   formatoCOP,
   PARAMS,
   puedeReagendarNoAsistida,
   puedeReservar,
+  rangoAnticipo,
   validarAbono,
 } from './finanzas';
 
@@ -184,6 +186,56 @@ describe('puedeReagendarNoAsistida (RF-14)', () => {
   });
   it('no aplica a fechas futuras', () => {
     expect(puedeReagendarNoAsistida('2026-11-10', '2026-11-09')).toBe(false);
+  });
+});
+
+describe('calcularOpcionesNoAsistencia (RN-16, D-05)', () => {
+  it('anticipo $15.000: sobrante $5.000, devolución $3.000 y diferencia $5.000', () => {
+    expect(calcularOpcionesNoAsistencia(15_000)).toMatchObject({
+      multaCubierta: 10_000,
+      sobrante: 5_000,
+      costoDevolucion: 2_000,
+      devolucion: 3_000,
+      trasladado: 5_000,
+      diferencia: 5_000,
+    });
+  });
+  it('anticipo $10.000: no sobra nada y para reagendar paga $10.000', () => {
+    expect(calcularOpcionesNoAsistencia(10_000)).toMatchObject({
+      sobrante: 0,
+      devolucion: 0,
+      trasladado: 0,
+      diferencia: 10_000,
+    });
+  });
+  it('anticipo $25.000: devolución $13.000 o pasan $15.000 sin diferencia', () => {
+    expect(calcularOpcionesNoAsistencia(25_000)).toMatchObject({
+      sobrante: 15_000,
+      devolucion: 13_000,
+      trasladado: 15_000,
+      diferencia: 0,
+    });
+  });
+  it('sin anticipo: la multa queda pendiente', () => {
+    expect(calcularOpcionesNoAsistencia(0)).toMatchObject({ multaPendiente: 10_000, sobrante: 0 });
+  });
+  it('rechaza anticipos inválidos', () => {
+    expect(() => calcularOpcionesNoAsistencia(-1)).toThrow(RangeError);
+    expect(() => calcularOpcionesNoAsistencia(1.5)).toThrow(RangeError);
+  });
+});
+
+describe('rangoAnticipo (RN-08, D-45)', () => {
+  it('sin traslado: de $10.000 al total', () => {
+    expect(rangoAnticipo(35_000)).toEqual({ minimo: 10_000, maximo: 35_000 });
+  });
+  it('con traslado: completa hasta $10.000 y no pasa de lo que falta', () => {
+    expect(rangoAnticipo(35_000, 5_000)).toEqual({ minimo: 5_000, maximo: 30_000 });
+    expect(rangoAnticipo(35_000, 20_000)).toEqual({ minimo: 1, maximo: 15_000 });
+  });
+  it('validarAbono usa el mismo rango', () => {
+    expect(validarAbono('5.000', 35_000, 5_000)).toEqual({ ok: true, valor: 5_000 });
+    expect(validarAbono('4.000', 35_000, 5_000).ok).toBe(false);
   });
 });
 

@@ -86,8 +86,8 @@ export const useResolverMulta = () => {
 export const useRegistrarDevolucion = () => {
   const refrescar = useRefrescarCitas();
   return useMutation({
-    mutationFn: ({ comprobanteId, monto }: { comprobanteId: string; monto: number }) =>
-      registrarDevolucion(comprobanteId, monto),
+    mutationFn: ({ citaId, monto }: { citaId: string; monto: number }) =>
+      registrarDevolucion(citaId, monto),
     onSettled: refrescar,
   });
 };

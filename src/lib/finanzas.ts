@@ -29,20 +29,33 @@ export function parsearPesos(entrada: unknown): Validacion {
   return { ok: true, valor: Number(limpio.replace(/\./g, '')) };
 }
 
-/** RN-08: el abono no puede ser menor a $10.000 ni mayor al total de la cita. */
-export function validarAbono(entrada: unknown, totalCita: number): Validacion {
+/**
+ * RN-08: el abono no puede ser menor a $10.000 ni mayor al total de la cita. Con anticipo
+ * trasladado de un reagendamiento (D-45) el rango es el de rangoAnticipo.
+ */
+export function validarAbono(entrada: unknown, totalCita: number, trasladado = 0): Validacion {
   if (!Number.isInteger(totalCita) || totalCita <= 0) {
     return { ok: false, error: 'El total de la cita no es válido.' };
   }
   const r = parsearPesos(entrada);
   if (!r.ok) return r;
-  if (r.valor < PARAMS.ABONO_MINIMO) {
-    return { ok: false, error: `El abono mínimo es ${formatoCOP(PARAMS.ABONO_MINIMO)}.` };
-  }
-  if (r.valor > totalCita) {
+  const { minimo, maximo } = rangoAnticipo(totalCita, trasladado);
+  if (r.valor < minimo) {
     return {
       ok: false,
-      error: `El abono no puede superar el total de la cita (${formatoCOP(totalCita)}).`,
+      error:
+        trasladado > 0
+          ? `Para completar el anticipo paga al menos ${formatoCOP(minimo)}.`
+          : `El abono mínimo es ${formatoCOP(PARAMS.ABONO_MINIMO)}.`,
+    };
+  }
+  if (r.valor > maximo) {
+    return {
+      ok: false,
+      error:
+        trasladado > 0
+          ? `El pago no puede superar lo que falta de la cita (${formatoCOP(maximo)}).`
+          : `El abono no puede superar el total de la cita (${formatoCOP(totalCita)}).`,
     };
   }
   return r;
@@ -196,4 +209,54 @@ const aUTC = (fecha: string): number => {
 export function puedeReagendarNoAsistida(fechaCita: string, hoy: string): boolean {
   const dias = Math.round((aUTC(hoy) - aUTC(fechaCita)) / 86_400_000);
   return dias >= 0 && dias <= PARAMS.PLAZO_REAGENDAR_NO_ASISTIDA_DIAS;
+}
+
+export interface OpcionesNoAsistencia extends ResultadoNoAsistencia {
+  /** Lo que queda del anticipo tras descontar la multa (anticipo − multa, mínimo 0). */
+  sobrante: number;
+  /** Opción "Devolución": lo que se retiene por devolver (hasta $2.000). */
+  costoDevolucion: number;
+  /** Opción "Devolución": sobrante − $2.000, mínimo 0. */
+  devolucion: number;
+  /** Opción "Reagendar": anticipo que pasa a la nueva cita (todo el sobrante). */
+  trasladado: number;
+  /** Opción "Reagendar": lo que falta pagar para llegar al abono mínimo ($10.000). */
+  diferencia: number;
+}
+
+/**
+ * RN-16 y D-05: lo que el cliente puede elegir con el sobrante de una cita no asistida.
+ * Ejemplo: anticipo $15.000 → sobrante $5.000, devolución $3.000; o reagendar pasando
+ * $5.000 y pagando $5.000 más.
+ */
+export function calcularOpcionesNoAsistencia(anticipoAprobado: number): OpcionesNoAsistencia {
+  const base = calcularNoAsistencia(anticipoAprobado);
+  const sobrante = base.anticipoRestante;
+  const costoDevolucion = Math.min(sobrante, PARAMS.COSTO_DEVOLUCION);
+  return {
+    ...base,
+    sobrante,
+    costoDevolucion,
+    devolucion: sobrante - costoDevolucion,
+    trasladado: sobrante,
+    diferencia: Math.max(0, PARAMS.ABONO_MINIMO - sobrante),
+  };
+}
+
+export interface RangoAnticipo {
+  minimo: number;
+  maximo: number;
+}
+
+/**
+ * RN-08 con anticipo trasladado (D-45): lo que el cliente puede pagar en un comprobante. Sin
+ * traslado es de $10.000 al total. Con traslado completa hasta $10.000 (mínimo $1) y nunca
+ * supera lo que falta del total. Es el mismo cálculo de preparar_comprobante en la base.
+ */
+export function rangoAnticipo(totalCita: number, trasladado = 0): RangoAnticipo {
+  validarAnticipo(trasladado);
+  return {
+    minimo: Math.max(PARAMS.ABONO_MINIMO - trasladado, 1),
+    maximo: Math.max(0, totalCita - trasladado),
+  };
 }

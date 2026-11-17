@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { entradaActiva, entradasDrawer, puedeEntrar, rutaInicial } from '@/lib/navegacion';
-import { mapCita, separarCitas } from '@/models/cita.mapper';
+import { mapCita, mapReagendar, separarCitas } from '@/models/cita.mapper';
 import type { Cita } from '@/types/entidades';
 
 describe('navegación por rol', () => {
@@ -64,6 +64,8 @@ describe('mapCita', () => {
     archivo_path: `cli/${id}.jpg`,
     metodo: 'nequi',
     subido_en: '2026-11-15T15:00:00Z',
+    trasladado_desde: null,
+    devolucion_monto: null,
   });
   const base = {
     id: '1',
@@ -71,6 +73,9 @@ describe('mapCita', () => {
     fin: '2026-11-16T21:10:00Z',
     estado: 'confirmada',
     total: 25000.4,
+    profesional_id: 'p1',
+    reagendada_desde: null,
+    devolucion_elegida_en: null,
     profesionales: { nombre: 'Mario' },
   };
 
@@ -85,7 +90,37 @@ describe('mapCita', () => {
       servicios: [],
       anticipoAprobado: 0,
       anticipo: { estado: 'sin_anticipo', comprobante: null },
+      profesionalId: 'p1',
+      anticipoTrasladado: 0,
+      reagendadaDesde: null,
+      devolucionElegidaEn: null,
+      devolucionRegistrada: false,
     });
+  });
+
+  it('separa el anticipo trasladado y marca la devolución registrada (D-45)', () => {
+    const cita = mapCita({
+      ...base,
+      reagendada_desde: 'vieja',
+      comprobantes: [
+        { ...comprobante('t', 5000, 'aprobado'), trasladado_desde: 'x', devolucion_monto: 3000 },
+        comprobante('p', 5000, 'pendiente'),
+      ],
+    });
+    expect(cita.anticipoTrasladado).toBe(5000);
+    expect(cita.anticipoAprobado).toBe(5000);
+    expect(cita.anticipo.comprobante?.id).toBe('p');
+    expect(cita.reagendadaDesde).toBe('vieja');
+    expect(cita.devolucionRegistrada).toBe(true);
+  });
+
+  it('mapReagendar exige la cita nueva y un caso conocido (RN-14)', () => {
+    expect(
+      mapReagendar({ cita_id: 'n', caso: 'no_asistida', anticipo_trasladado: 5000, diferencia: 5000 }),
+    ).toEqual({ citaId: 'n', caso: 'no_asistida', anticipoTrasladado: 5000, diferencia: 5000 });
+    expect(() =>
+      mapReagendar({ cita_id: '', caso: 'futura', anticipo_trasladado: 0, diferencia: 0 }),
+    ).toThrow();
   });
 
   it('un estado desconocido queda por marcar y sin profesional se usa un nombre genérico', () => {
@@ -121,6 +156,8 @@ describe('mapCita', () => {
       archivoPath: 'cli/b.jpg',
       metodo: 'nequi',
       subidoEn: '2026-11-15T15:00:00Z',
+      trasladado: false,
+      devolucionMonto: null,
     });
 
     const rechazado = mapCita({
@@ -151,6 +188,11 @@ describe('separarCitas (RF-08)', () => {
     servicios: [],
     anticipoAprobado: 0,
     anticipo: { estado: 'sin_anticipo', comprobante: null },
+    profesionalId: 'p1',
+    anticipoTrasladado: 0,
+    reagendadaDesde: null,
+    devolucionElegidaEn: null,
+    devolucionRegistrada: false,
   });
   const ahora = Date.parse('2026-11-17T15:00:00Z');
 
