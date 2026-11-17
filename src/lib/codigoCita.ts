@@ -4,5 +4,10 @@
 // las búsquedas en la base siempre usan el uuid completo.
 const LARGO_CODIGO = 6;
 
-export const codigoCita = (id: string): string =>
-  `SB-${id.replace(/-/g, '').slice(0, LARGO_CODIGO).toUpperCase()}`;
+const codigo = (prefijo: string, id: string): string =>
+  `${prefijo}-${id.replace(/-/g, '').slice(0, LARGO_CODIGO).toUpperCase()}`;
+
+export const codigoCita = (id: string): string => codigo('SB', id);
+
+/** Referencia del comprobante en la app (D-38), con la misma regla: "CP-" + 6 caracteres. */
+export const codigoComprobante = (id: string): string => codigo('CP', id);

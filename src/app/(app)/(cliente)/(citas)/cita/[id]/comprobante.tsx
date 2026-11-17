@@ -1,25 +1,11 @@
-// Comprobante del anticipo (RF-13). No muestra "Recibido" hasta que el archivo se guarde de verdad.
-import { router } from 'expo-router';
-
-import PantallaPendiente from '@/components/PantallaPendiente';
+// Comprobante del anticipo (RF-13, RN-09), ruta /cita/[id]/comprobante. Solo muestra lo que la
+// base guardó; el cuerpo vive en components/pantallas/ComprobanteCita.
+import ComprobanteCita from '@/components/pantallas/ComprobanteCita';
 import ConCita from '@/components/pantallas/ConCita';
 import { useIdDeRuta } from '@/hooks/useIdDeRuta';
 
 export default function ComprobanteScreen() {
   const id = useIdDeRuta('id');
 
-  return (
-    <ConCita id={id}>
-      {() => (
-        <PantallaPendiente
-          icono="image-outline"
-          mensaje="Subir el comprobante con la cámara o la galería (RF-13) llega en la siguiente entrega. Todavía no se ha enviado nada."
-          acciones={[{
-            texto: 'Volver al anticipo',
-            onPress: () => router.navigate({ pathname: '/cita/[id]/anticipo', params: { id } }),
-          }]}
-        />
-      )}
-    </ConCita>
-  );
+  return <ConCita id={id}>{(cita) => <ComprobanteCita cita={cita} />}</ConCita>;
 }

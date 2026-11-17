@@ -97,3 +97,35 @@ export const mensajeDeCancelacion = (error: unknown): string => {
     }
   }
 };
+
+/**
+ * Mensaje al enviar o reemplazar un comprobante (RF-13). Siempre aclara que no quedó nada
+ * registrado, porque un fallo en la subida o en el registro deja el anticipo como estaba.
+ */
+export const mensajeDeComprobante = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. No se envió nada; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default: {
+      const estado = isAxiosError(error) ? error.response?.status : undefined;
+      const c = cuerpo(error);
+      const mensaje = c?.message ?? '';
+      if (estado === 413 || /exceeded the maximum allowed size/i.test(mensaje)) {
+        return 'La imagen supera los 5 MB. No se envió nada; elige otra.';
+      }
+      if (estado === 415 || /mime type/i.test(mensaje)) {
+        return 'Solo se aceptan imágenes JPG o PNG. No se envió nada; elige otra.';
+      }
+      // Índice comprobantes_un_vigente_por_cita: ya hay uno pendiente o aprobado.
+      if (c?.code === '23505') return 'Ya tienes un comprobante en revisión o aprobado para esta cita.';
+      const regla = textoDeRegla(error);
+      if (regla) return regla;
+      if (mensaje === 'No encontramos esta cita.' || mensaje === 'No encontramos este comprobante.') {
+        return mensaje;
+      }
+      return 'No pudimos guardar el comprobante. No se envió nada; inténtalo de nuevo.';
+    }
+  }
+};

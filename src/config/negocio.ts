@@ -70,10 +70,18 @@ export const DISPONIBILIDAD = {
 
 /** Medios de pago del anticipo (D-04). Se muestran al cliente: no son secretos. */
 export const MEDIOS_PAGO = [
-  { nombre: 'Nequi', dato: '3017821621' },
-  { nombre: 'Bold (llave)', dato: '@bold31897737' },
-  { nombre: 'Bancolombia ahorros', dato: '1700-1463-4228' },
+  { id: 'nequi', nombre: 'Nequi', etiqueta: 'Número', dato: '3017821621' },
+  { id: 'bold', nombre: 'Llave Bold', etiqueta: 'Llave', dato: '@bold31897737' },
+  { id: 'bancolombia', nombre: 'Ahorros Bancolombia', etiqueta: 'Cuenta', dato: '1700-1463-4228' },
 ] as const;
+
+/** Archivo del comprobante (RF-13): lo mismo que exige el bucket privado de Supabase. */
+export const COMPROBANTE = {
+  bucket: 'comprobantes',
+  tamanoMaximoBytes: 5 * 1024 * 1024,
+  /** Calidad con la que el selector comprime la foto (también la convierte a JPEG en iOS). */
+  calidad: 0.8,
+} as const;
 
 /** Ubicación de la barbería (D-03). */
 export const UBICACION_LOCAL: LatLng = {

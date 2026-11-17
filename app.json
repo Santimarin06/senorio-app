@@ -40,6 +40,14 @@
         {
           "locationWhenInUsePermission": "Señorío Barber usa tu ubicación solo mientras ves el mapa, para mostrarte dónde estás respecto a la barbería."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Señorío Barber usa la cámara solo para fotografiar el comprobante de tu anticipo.",
+          "photosPermission": "Señorío Barber abre tus fotos solo para que elijas el comprobante de tu anticipo.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {
