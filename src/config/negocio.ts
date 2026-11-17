@@ -89,6 +89,13 @@ export const COMPROBANTE = {
   tamanoMaximoBytes: 5 * 1024 * 1024,
   /** Calidad con la que el selector comprime la foto (también la convierte a JPEG en iOS). */
   calidad: 0.8,
+  /** Segundos que dura la URL firmada con la que el administrador ve la imagen (RF-28). */
+  urlFirmadaSegundos: 10 * 60,
+} as const;
+
+/** Revisión del administrador (RF-25): cuántas multas resueltas se muestran en el historial. */
+export const REVISION = {
+  historialMultas: 20,
 } as const;
 
 /** Ubicación de la barbería (D-03). */

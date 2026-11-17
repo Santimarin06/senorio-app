@@ -162,3 +162,46 @@ export interface Bloqueo {
   fin: string;
   motivo: string;
 }
+
+/** Datos de la cita que necesita la revisión del administrador (RF-25, RF-28). */
+export interface CitaRevision {
+  id: string;
+  inicio: string;
+  estado: EstadoCita;
+  total: number;
+  profesional: string;
+}
+
+/** Comprobante por revisar (RF-28, RN-09), con su cita y su cliente. */
+export interface ComprobanteRevision {
+  id: string;
+  tipo: TipoAnticipo;
+  monto: number;
+  metodo: MedioPago | null;
+  subidoEn: string;
+  archivoPath: string;
+  cliente: string;
+  cita: CitaRevision;
+}
+
+export type MotivoMulta = 'no_asistio' | 'cancelo_tarde';
+
+/** Multa vista por el administrador (RF-25). */
+export interface MultaRevision {
+  id: string;
+  motivo: MotivoMulta;
+  monto: number;
+  estado: EstadoMulta;
+  resueltaEn: string | null;
+  cliente: string;
+  cita: CitaRevision;
+}
+
+/** Anticipo aprobado de una cita cancelada o no asistida que aún no se devolvió (RF-28). */
+export interface DevolucionPendiente {
+  comprobanteId: string;
+  anticipoAprobado: number;
+  cliente: string;
+  telefono: string;
+  cita: CitaRevision;
+}
