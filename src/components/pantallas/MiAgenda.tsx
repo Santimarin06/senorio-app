@@ -1,15 +1,15 @@
 // Mi agenda del profesional (RF-21, RF-23, mockup "Buen día, Mario"): sus citas del día o de
 // la semana, en hora de Bogotá, con la banda del almuerzo y los botones de asistencia.
 // Solo las suyas: la RLS lo garantiza y la consulta filtra por su ficha de profesional.
-import { Ionicons } from '@expo/vector-icons';
 import { Fragment, useMemo, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import Chip from '@/components/Chip';
 import EstadoPantalla from '@/components/EstadoPantalla';
+import { BandaAlmuerzo, BotonFlecha } from '@/components/PartesAgenda';
 import TarjetaCitaAgenda from '@/components/TarjetaCitaAgenda';
-import { DISPONIBILIDAD, NEGOCIO } from '@/config/negocio';
-import { useAgenda, useAhora, useMarcarAsistencia } from '@/hooks/useAgenda';
+import { useAgenda, useAhora } from '@/hooks/useAgenda';
+import { useAsistencia } from '@/hooks/useAsistencia';
 import {
   citasPorDia,
   fechasDelRango,
@@ -19,13 +19,11 @@ import {
   type VistaAgenda,
 } from '@/lib/agenda';
 import { aBogota, sumarDias } from '@/lib/disponibilidad';
-import { mensajeDeAsistencia, mensajeDeError } from '@/lib/errores';
-import { etiquetaDia, formatoHora } from '@/lib/fechas';
-import { formatoCOP } from '@/lib/finanzas';
+import { mensajeDeError } from '@/lib/errores';
+import { etiquetaDia, mayuscula } from '@/lib/fechas';
 import { useSesionStore } from '@/store/useSesionStore';
-import type { CitaAgenda, MarcaAsistencia } from '@/types/entidades';
+import type { CitaAgenda } from '@/types/entidades';
 
-const mayuscula = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1);
 const hoyEnBogota = () => aBogota(new Date()).fecha;
 
 export default function MiAgenda() {
@@ -55,36 +53,10 @@ function AgendaProfesional({ profesionalId, nombre }: { profesionalId: string; n
     ...rango,
     profesionalId,
   });
-  const marcar = useMarcarAsistencia();
-
-  const guardar = (citaId: string, estado: MarcaAsistencia) =>
-    // Sin actualización optimista: la pantalla cambia cuando la base confirma y se recarga.
-    marcar.mutate(
-      { citaId, estado },
-      { onError: (e) => Alert.alert('No se guardó', mensajeDeAsistencia(e)) },
-    );
-
-  const onMarcar = (cita: CitaAgenda, estado: MarcaAsistencia) => {
-    if (estado === 'asistida') return guardar(cita.id, estado);
-    Alert.alert(
-      '¿Marcar como no asistida?',
-      `${cita.cliente.nombre} no llegó. Se genera la multa de ${formatoCOP(NEGOCIO.multa)}; si tiene anticipo aprobado, se descuenta de él.`,
-      [
-        { text: 'Volver', style: 'cancel' },
-        { text: 'No asistió', style: 'destructive', onPress: () => guardar(cita.id, estado) },
-      ],
-    );
-  };
+  const { propsTarjeta } = useAsistencia();
 
   const tarjeta = (cita: CitaAgenda) => (
-    <TarjetaCitaAgenda
-      key={cita.id}
-      cita={cita}
-      ahoraMs={ahora}
-      onMarcar={(estado) => onMarcar(cita, estado)}
-      guardando={marcar.isPending && marcar.variables.citaId === cita.id ? marcar.variables.estado : null}
-      bloqueada={marcar.isPending}
-    />
+    <TarjetaCitaAgenda key={cita.id} cita={cita} ahoraMs={ahora} {...propsTarjeta(cita)} />
   );
 
   const filas = (citas: readonly CitaAgenda[]) =>
@@ -163,39 +135,5 @@ function AgendaProfesional({ profesionalId, nombre }: { profesionalId: string; n
         </ScrollView>
       )}
     </View>
-  );
-}
-
-/** Almuerzo de 12:00 a 13:00: nunca hay citas (RN-01). */
-function BandaAlmuerzo() {
-  const { inicioMin, finMin } = DISPONIBILIDAD.ALMUERZO;
-  return (
-    <View className="mb-3 rounded-xl bg-borde px-4 py-3">
-      <Text className="text-center font-texto text-base text-secondary">
-        {formatoHora(inicioMin)} – {formatoHora(finMin)} · Almuerzo · Sin citas
-      </Text>
-    </View>
-  );
-}
-
-function BotonFlecha({
-  icono,
-  etiqueta,
-  onPress,
-}: {
-  icono: 'chevron-back' | 'chevron-forward';
-  etiqueta: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={etiqueta}
-      hitSlop={8}
-      className="h-12 w-12 items-center justify-center active:opacity-60"
-    >
-      <Ionicons name={icono} size={24} color="#111111" />
-    </Pressable>
   );
 }
