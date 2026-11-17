@@ -13,6 +13,8 @@ interface SesionState {
   restaurada: boolean;
   establecer: (usuario: Usuario, tokens: Tokens) => void;
   actualizarTokens: (tokens: Tokens) => void;
+  /** Perfil que la base confirmó después de editar los datos (RF-15). */
+  actualizarUsuario: (usuario: Usuario) => void;
   limpiar: () => void;
   marcarRestaurada: () => void;
 }
@@ -23,6 +25,7 @@ export const useSesionStore = create<SesionState>()((set) => ({
   restaurada: false,
   establecer: (usuario, tokens) => set({ usuario, tokens }),
   actualizarTokens: (tokens) => set({ tokens }),
+  actualizarUsuario: (usuario) => set({ usuario }),
   limpiar: () => set({ usuario: null, tokens: null }),
   marcarRestaurada: () => set({ restaurada: true }),
 }));

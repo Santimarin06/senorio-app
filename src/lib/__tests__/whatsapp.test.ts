@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { enlaceWhatsApp, mensajeCancelacion, mensajeReserva } from '@/lib/whatsapp';
+import { enlaceWhatsApp, mensajeCancelacion, mensajeMulta, mensajeReserva } from '@/lib/whatsapp';
 
 describe('WhatsApp (RF-07)', () => {
   const mensaje = mensajeReserva({
@@ -65,5 +65,25 @@ describe('Aviso de cancelación (RF-07, RF-09)', () => {
   it('el enlace conserva tildes y saltos de línea', () => {
     const m = mensajeCancelacion({ ...base, tardia: false, devolucion: 0, multaPendiente: 0 });
     expect(decodeURIComponent(enlaceWhatsApp(m).split('text=')[1] ?? '')).toBe(m);
+  });
+});
+
+describe('mensajeMulta (RF-15)', () => {
+  const m = mensajeMulta({
+    codigo: 'SB-1A2B3C',
+    fechaHora: 'viernes 30 de octubre, 10:00 a. m.',
+    motivo: 'No asistió',
+    monto: 10000,
+  });
+
+  it('nombra la cita, el motivo y el monto de la multa', () => {
+    expect(m).toContain('SB-1A2B3C del viernes 30 de octubre, 10:00 a. m.');
+    expect(m).toContain('Motivo: No asistió');
+    expect(m).toContain('Multa: $10.000');
+  });
+
+  it('pide resolverla para volver a reservar', () => {
+    expect(m).toMatch(/multa pendiente/);
+    expect(m).toMatch(/volver a reservar/);
   });
 });

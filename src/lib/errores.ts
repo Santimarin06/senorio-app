@@ -227,3 +227,19 @@ export const mensajeDeGestion = (error: unknown): string => {
     }
   }
 };
+
+/** RF-15: mensaje al guardar nombre y teléfono. Aclara que nada cambió (RN-14). */
+export const mensajeDePerfil = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. Tus datos no se guardaron; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default: {
+      // Permiso de columna o RLS: solo se editan nombre y teléfono del perfil propio.
+      if (cuerpo(error)?.code === '42501') return 'Solo puedes cambiar tu nombre y tu teléfono.';
+      if (error instanceof Error && !isAxiosError(error)) return error.message;
+      return 'No pudimos guardar tus datos. Nada cambió; inténtalo de nuevo.';
+    }
+  }
+};

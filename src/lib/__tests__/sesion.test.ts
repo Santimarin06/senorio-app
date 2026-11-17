@@ -4,7 +4,10 @@ import { AxiosError, AxiosHeaders } from 'axios';
 import { esFranjaTomada, mensajeDeAuth, mensajeDeReserva } from '@/lib/errores';
 import {
   debeRefrescar,
+  hayCambiosPerfil,
+  normalizarDatosPerfil,
   normalizarTelefono,
+  validarDatosPerfil,
   validarInicioSesion,
   validarRegistro,
 } from '@/lib/sesion';
@@ -60,6 +63,40 @@ describe('validarRegistro (RF-01)', () => {
       correo: 'Escribe tu correo.',
       contrasena: 'Escribe tu contraseña.',
     });
+  });
+});
+
+describe('Editar mis datos (RF-15)', () => {
+  it('acepta nombre y celular válidos, con indicativo y espacios', () => {
+    expect(validarDatosPerfil({ nombre: 'Ana Ruiz', telefono: '+57 310 555 0142' })).toEqual({});
+  });
+
+  it('usa los mismos mensajes del registro', () => {
+    expect(validarDatosPerfil({ nombre: ' ', telefono: '' })).toEqual({
+      nombre: 'Escribe tu nombre.',
+      telefono: 'Escribe tu celular.',
+    });
+    expect(validarDatosPerfil({ nombre: 'A', telefono: '2001234567' })).toEqual({
+      nombre: 'El nombre es muy corto.',
+      telefono: 'El celular tiene 10 dígitos y empieza por 3.',
+    });
+    expect(validarDatosPerfil({ nombre: 'Ana', telefono: '300abc' }).telefono).toBe(
+      'El celular solo lleva números.',
+    );
+  });
+
+  it('normaliza antes de guardar', () => {
+    expect(normalizarDatosPerfil({ nombre: '  Ana Ruiz ', telefono: '+57 310-555-0142' })).toEqual({
+      nombre: 'Ana Ruiz',
+      telefono: '3105550142',
+    });
+  });
+
+  it('sin cambios reales no hay nada que guardar', () => {
+    const actual = { nombre: 'Ana Ruiz', telefono: '3105550142' };
+    expect(hayCambiosPerfil(actual, { nombre: 'Ana Ruiz ', telefono: '310 555 0142' })).toBe(false);
+    expect(hayCambiosPerfil(actual, { nombre: 'Ana María', telefono: '3105550142' })).toBe(true);
+    expect(hayCambiosPerfil(actual, { nombre: 'Ana Ruiz', telefono: '3001234567' })).toBe(true);
   });
 });
 

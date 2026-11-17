@@ -1,8 +1,13 @@
 // Flujo de la sesión (RF-01): restaurar al abrir la app, iniciar, registrar y cerrar.
-import { normalizarCorreo, normalizarTelefono } from '@/lib/sesion';
+import {
+  normalizarCorreo,
+  normalizarDatosPerfil,
+  normalizarTelefono,
+  type DatosPerfil,
+} from '@/lib/sesion';
 import { borrarSesion, guardarSesion, leerSesion } from '@/services/almacenamientoSesion';
 import { cerrarSesionRemota, iniciarSesion, registrar, type NuevoCliente } from '@/services/auth.api';
-import { getPerfil } from '@/services/perfiles.api';
+import { actualizarPerfil, getPerfil } from '@/services/perfiles.api';
 import { useSesionStore } from '@/store/useSesionStore';
 import type { Usuario } from '@/types/sesion';
 
@@ -44,6 +49,19 @@ export async function registrarCliente(c: NuevoCliente): Promise<'confirmar-corr
   await guardarSesion(tokens, usuario);
   useSesionStore.getState().establecer(usuario, tokens);
   return 'lista';
+}
+
+/**
+ * RF-15: guarda nombre y teléfono. Solo con la respuesta de la base cambia la sesión en
+ * pantalla y en el teléfono, para que el nombre nuevo siga al volver a abrir la app.
+ */
+export async function guardarMisDatos(datos: DatosPerfil): Promise<Usuario> {
+  const { usuario, tokens } = useSesionStore.getState();
+  if (!usuario || !tokens) throw new Error('Tu sesión terminó. Vuelve a iniciar sesión.');
+  const actualizado = await actualizarPerfil(usuario.id, normalizarDatosPerfil(datos));
+  await guardarSesion(tokens, actualizado);
+  useSesionStore.getState().actualizarUsuario(actualizado);
+  return actualizado;
 }
 
 /** Cierra la sesión local siempre; la revocación en el servidor es mejor esfuerzo. */

@@ -1,6 +1,5 @@
-import PerfilUsuario from '@/components/pantallas/PerfilUsuario';
+import Cuenta from '@/components/pantallas/Cuenta';
 
-// La multa pendiente (RF-15) se mostrará aquí cuando existan las multas en la base.
 export default function CuentaScreen() {
-  return <PerfilUsuario />;
+  return <Cuenta />;
 }
