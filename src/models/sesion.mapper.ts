@@ -20,4 +20,5 @@ export const mapPerfil = (perfil: PerfilRespuesta): Usuario => ({
   rol: (ROLES as readonly string[]).includes(perfil.rol) ? (perfil.rol as Rol) : 'cliente',
   correo: perfil.correo ?? '',
   telefono: perfil.telefono ?? '',
+  profesionalId: perfil.rol === 'profesional' ? perfil.profesional_id : null,
 });

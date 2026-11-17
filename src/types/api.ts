@@ -49,6 +49,23 @@ export interface CitaRespuesta {
   comprobantes?: ComprobanteRespuesta[] | null;
 }
 
+/**
+ * Cita de la agenda del panel (RF-21, RF-22). El cliente llega por la llave cliente_id y solo
+ * con nombre y teléfono; del anticipo, el profesional solo ve los comprobantes aprobados.
+ */
+export interface CitaAgendaRespuesta {
+  id: string;
+  inicio: string;
+  fin: string;
+  estado: string;
+  total: number;
+  profesional_id: string;
+  profesionales: { nombre: string } | null;
+  cliente: { nombre: string; telefono: string | null } | null;
+  cita_servicios?: { nombre: string; precio: number; duracion_min: number }[] | null;
+  comprobantes?: { monto: number; estado: string }[] | null;
+}
+
 /** Fila de comprobantes (RF-13), embebida en la cita. */
 export interface ComprobanteRespuesta {
   id: string;
@@ -109,6 +126,8 @@ export interface PerfilRespuesta {
   telefono: string | null;
   correo: string | null;
   rol: string;
+  /** Ficha del catálogo del usuario con rol profesional (D-13); null para los demás. */
+  profesional_id: string | null;
 }
 
 /** Errores de Supabase Auth (GoTrue) y de PostgREST. */

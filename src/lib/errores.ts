@@ -99,6 +99,23 @@ export const mensajeDeCancelacion = (error: unknown): string => {
 };
 
 /**
+ * Mensaje al marcar asistencia (RF-23). La pantalla no cambia nada si falla, así que el
+ * mensaje aclara que la cita sigue igual (RN-12, RN-14).
+ */
+export const mensajeDeAsistencia = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. La cita sigue igual; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default:
+      return (
+        textoDeRegla(error) ?? 'No pudimos guardar la asistencia. La cita sigue igual; inténtalo de nuevo.'
+      );
+  }
+};
+
+/**
  * Mensaje al enviar o reemplazar un comprobante (RF-13). Siempre aclara que no quedó nada
  * registrado, porque un fallo en la subida o en el registro deja el anticipo como estaba.
  */

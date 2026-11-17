@@ -6,7 +6,7 @@ import type { Usuario } from '@/types/sesion';
 /** Perfil del usuario que acaba de iniciar sesión (la RLS solo deja leer el propio). */
 export const getPerfil = async (usuarioId: string, accessToken: string): Promise<Usuario> => {
   const { data } = await supabaseApi.get<PerfilRespuesta[]>('/perfiles', {
-    params: { select: 'id,nombre,telefono,correo,rol', id: `eq.${usuarioId}` },
+    params: { select: 'id,nombre,telefono,correo,rol,profesional_id', id: `eq.${usuarioId}` },
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const perfil = data[0];

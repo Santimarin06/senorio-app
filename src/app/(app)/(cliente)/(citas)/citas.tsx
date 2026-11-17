@@ -8,6 +8,7 @@ import EstadoPantalla from '@/components/EstadoPantalla';
 import PantallaPendiente from '@/components/PantallaPendiente';
 import Tarjeta from '@/components/Tarjeta';
 import { useMisCitas } from '@/hooks/useCita';
+import { estadoVisible } from '@/lib/agenda';
 import { mensajeDeError } from '@/lib/errores';
 import { formatoFechaHoraBogota } from '@/lib/fechas';
 import { ETIQUETA_ESTADO, separarCitas } from '@/models/cita.mapper';
@@ -49,7 +50,7 @@ export default function CitasScreen() {
       renderItem={({ item }) => (
         <Tarjeta
           titulo={item.profesional}
-          subtitulo={`${formatoFechaHoraBogota(item.inicio)}\n${ETIQUETA_ESTADO[item.estado]}`}
+          subtitulo={`${formatoFechaHoraBogota(item.inicio)}\n${ETIQUETA_ESTADO[estadoVisible(item, Date.now())]}`}
           icono="calendar-outline"
           onPress={() => router.push({ pathname: '/cita/[id]', params: { id: item.id } })}
         />
