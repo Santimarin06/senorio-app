@@ -1,11 +1,12 @@
-// Acciones HTTP de citas (RF-05, RF-08). La RLS solo deja ver las citas propias.
+// Acciones HTTP de citas (RF-05, RF-08, RF-09). La RLS solo deja ver las citas propias.
 import { isAxiosError } from 'axios';
 
 import { esUuid } from '@/lib/ids';
+import { mapCancelacion } from '@/models/cancelacion.mapper';
 import { mapCita, SELECT_CITA } from '@/models/cita.mapper';
 import { supabaseApi } from '@/services/api/supabase-api';
-import type { CitaRespuesta } from '@/types/api';
-import type { Cita } from '@/types/entidades';
+import type { CancelacionRespuesta, CitaRespuesta } from '@/types/api';
+import type { Cita, ResultadoCancelacionBase } from '@/types/entidades';
 
 /** Detalle por id. Devuelve null si el id no existe o el usuario no puede verla (RLS). */
 export const getCitaById = async (id: string): Promise<Cita | null> => {
@@ -57,4 +58,15 @@ export const getMultaPendienteTotal = async (clienteId: string): Promise<number>
     params: { select: 'monto', cliente_id: `eq.${clienteId}`, estado: 'eq.pendiente' },
   });
   return data.reduce((suma, m) => suma + Math.round(m.monto), 0);
+};
+
+/**
+ * RF-09: cancela con la función cancelar_cita (D-30). La base decide a tiempo o tarde y crea
+ * la multa; se devuelve lo que quedó guardado, no lo que calculó la pantalla.
+ */
+export const cancelarCita = async (id: string): Promise<ResultadoCancelacionBase> => {
+  const { data } = await supabaseApi.post<CancelacionRespuesta>('/rpc/cancelar_cita', {
+    p_cita_id: id,
+  });
+  return mapCancelacion(data);
 };

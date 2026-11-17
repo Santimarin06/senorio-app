@@ -109,10 +109,29 @@ export interface ResultadoCancelacion {
   anticipoTrasladado: number;
 }
 
-/** RN-06 y RN-15. */
+/** RN-06 y RN-15, a partir de las horas que faltan para la cita. */
 export function calcularCancelacion(e: EntradaCancelacion): ResultadoCancelacion {
+  return consecuenciaCancelacion({
+    anticipoAprobado: e.anticipoAprobado,
+    tardia: esCancelacionTardia(e.horasAntes),
+    reagenda: e.reagenda,
+  });
+}
+
+export interface EntradaConsecuencia {
+  anticipoAprobado: number;
+  /** true si se cancela con menos de 4 horas (o así lo decidió la base: 'cancelada_tarde'). */
+  tardia: boolean;
+  reagenda: boolean;
+}
+
+/**
+ * RN-06 y RN-15 cuando ya se sabe si la cancelación es tardía. La pantalla de cancelar la usa
+ * con el resultado de la base, que manda sobre el cálculo previo (RN-14).
+ */
+export function consecuenciaCancelacion(e: EntradaConsecuencia): ResultadoCancelacion {
   validarAnticipo(e.anticipoAprobado);
-  const tardia = esCancelacionTardia(e.horasAntes);
+  const tardia = e.tardia;
   if (e.reagenda && tardia) {
     throw new RangeError('No se puede reagendar con menos de 4 horas de anticipación.');
   }

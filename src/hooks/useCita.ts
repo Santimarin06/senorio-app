@@ -4,6 +4,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  cancelarCita,
   getCitaById,
   getMisCitas,
   getMultaPendienteTotal,
@@ -49,6 +50,23 @@ export const useReservarCita = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (r: NuevaReserva) => reservarCita(r),
+    onSettled: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['citas'] }),
+        queryClient.invalidateQueries({ queryKey: ['disponibilidad'] }),
+      ]);
+    },
+  });
+};
+
+/**
+ * RF-09: cancelar. Al terminar (bien o mal) refresca citas (detalle, lista y multa pendiente)
+ * y disponibilidad: la franja queda libre o la cita pudo cambiar de estado mientras tanto.
+ */
+export const useCancelarCita = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => cancelarCita(id),
     onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['citas'] }),

@@ -25,6 +25,34 @@ export function mensajeReserva(d: DatosAvisoReserva): string {
   ].join('\n');
 }
 
+export interface DatosAvisoCancelacion extends DatosAvisoReserva {
+  /** Código visible de la cita (D-35), por ejemplo "SB-1A2B3C". */
+  codigo: string;
+  /** true si la base la dejó como 'cancelada_tarde'. */
+  tardia: boolean;
+  /** Dinero que se le devuelve al cliente (RN-15). */
+  devolucion: number;
+  /** Multa que el anticipo no cubrió (RN-07). */
+  multaPendiente: number;
+}
+
+/** RF-07 y RF-09: aviso de una cancelación que la base ya registró. */
+export function mensajeCancelacion(d: DatosAvisoCancelacion): string {
+  return [
+    `Hola, ${NEGOCIO.nombre}. Cancelé mi cita ${d.codigo} en la app.`,
+    `Cliente: ${d.cliente}`,
+    `Profesional: ${d.profesional}`,
+    `Servicios: ${d.servicios.join(', ')}`,
+    `Fecha y hora: ${d.fechaHora}`,
+    `Valor: ${formatoCOP(d.total)}`,
+    d.tardia
+      ? `Cancelé con menos de ${NEGOCIO.horasMinimasCancelarSinMulta} horas (multa de ${formatoCOP(NEGOCIO.multa)}).`
+      : `Cancelé con ${NEGOCIO.horasMinimasCancelarSinMulta} horas o más de anticipación.`,
+    ...(d.devolucion > 0 ? [`Devolución del anticipo: ${formatoCOP(d.devolucion)}.`] : []),
+    ...(d.multaPendiente > 0 ? [`Multa pendiente: ${formatoCOP(d.multaPendiente)}.`] : []),
+  ].join('\n');
+}
+
 export interface DatosCotizacion {
   productos: { nombre: string; precio: number; cantidad: number }[];
   /** Cita asociada (opcional): código SB-xxxxxx, fecha y hora en texto de Bogotá y profesional. */

@@ -49,6 +49,14 @@ export interface CitaRespuesta {
   comprobantes?: { monto: number; estado: string }[] | null;
 }
 
+/** Respuesta de la función cancelar_cita (RF-09): lo que quedó guardado en la base. */
+export interface CancelacionRespuesta {
+  estado: string;
+  anticipo_aprobado: number;
+  /** Estado de la multa de esa cita, o null si no hubo multa. */
+  multa_estado: string | null;
+}
+
 /** Fila de la función franjas_ocupadas: citas activas y bloqueos, sin datos del cliente. */
 export interface FranjaOcupadaRespuesta {
   inicio: string;

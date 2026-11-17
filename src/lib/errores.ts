@@ -69,9 +69,31 @@ export const esFranjaTomada = (error: unknown): boolean =>
 export const mensajeDeReserva = (error: unknown): string => {
   if (clasificarError(error) !== 'servidor') return mensajeDeError(error);
   if (esFranjaTomada(error)) return 'Esa franja acaba de ser tomada. Elige otra.';
+  const regla = textoDeRegla(error);
+  if (regla) return regla;
   const mensaje = cuerpo(error)?.message ?? '';
-  const regla = /^(?:RN|RF|D)-\d+:\s*(.+)$/.exec(mensaje);
-  if (regla?.[1]) return regla[1].charAt(0).toUpperCase() + regla[1].slice(1);
   if (mensaje === 'La hora elegida ya pasó.') return mensaje;
   return 'No pudimos registrar la cita. Inténtalo de nuevo.';
+};
+
+/** Texto de un error de regla de la base ("RN-07: texto" → "Texto"), o null si no lo es. */
+const textoDeRegla = (error: unknown): string | null => {
+  const regla = /^(?:RN|RF|D)-\d+:\s*(.+)$/.exec(cuerpo(error)?.message ?? '');
+  return regla?.[1] ? regla[1].charAt(0).toUpperCase() + regla[1].slice(1) : null;
+};
+
+/** Mensaje de cancelar_cita. Sin conexión se aclara que la cita no cambió (RN-14). */
+export const mensajeDeCancelacion = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. Tu cita sigue igual; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default: {
+      const regla = textoDeRegla(error);
+      if (regla) return regla;
+      if (cuerpo(error)?.message === 'No encontramos esta cita.') return 'No encontramos esta cita.';
+      return 'No pudimos cancelar la cita. Tu cita sigue igual; inténtalo de nuevo.';
+    }
+  }
 };

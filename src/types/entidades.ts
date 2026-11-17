@@ -59,6 +59,16 @@ export interface Cita {
   anticipoAprobado: number;
 }
 
+export type EstadoMulta = 'pendiente' | 'cobrada_anticipo' | 'pagada' | 'perdonada';
+
+/** Resultado de cancelar según la base (RF-09). Manda sobre el cálculo previo de la pantalla. */
+export interface ResultadoCancelacionBase {
+  estado: Extract<EstadoCita, 'cancelada_a_tiempo' | 'cancelada_tarde'>;
+  anticipoAprobado: number;
+  /** null si la cancelación no generó multa. */
+  multaEstado: EstadoMulta | null;
+}
+
 /** Lo que hace falta de la base para calcular la disponibilidad de una semana (RF-04). */
 export interface OcupacionSemana {
   /** Citas activas y bloqueos del profesional, instantes UTC (ISO). */
