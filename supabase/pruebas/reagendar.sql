@@ -67,10 +67,15 @@ begin
   update public.comprobantes set estado = 'aprobado' where cita_id in (v_a, v_b, v_d);
 
   -- v_b y v_d pasan a ayer y quedan no asistidas: la multa nace cobrada del anticipo.
+  -- Horas distintas: son del mismo profesional y no pueden solaparse (RN-02).
   update public.citas
   set inicio = now() - interval '1 day', fin = now() - interval '1 day' + interval '30 minutes',
       estado = 'no_asistida'
-  where id in (v_b, v_d);
+  where id = v_b;
+  update public.citas
+  set inicio = now() - interval '1 day 1 hour', fin = now() - interval '1 day 30 minutes',
+      estado = 'no_asistida'
+  where id = v_d;
   if exists (select 1 from public.multas where cita_id in (v_b, v_d) and estado <> 'cobrada_anticipo') then
     raise exception 'Falla: la multa con anticipo de $15.000 no quedó cobrada.';
   end if;
@@ -178,7 +183,7 @@ begin
   -- 8. Sin anticipo y con la multa pendiente no se reagenda (D-26).
   reset role;
   update public.citas
-  set inicio = now() - interval '1 day', fin = now() - interval '1 day' + interval '30 minutes',
+  set inicio = now() - interval '1 day 2 hours', fin = now() - interval '1 day 1 hour 30 minutes',
       estado = 'no_asistida'
   where id = v_v;
   set local role authenticated;
