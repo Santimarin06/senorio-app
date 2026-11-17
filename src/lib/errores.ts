@@ -194,3 +194,36 @@ export const mensajeDeRevision = (error: unknown): string => {
     }
   }
 };
+
+/**
+ * Mensaje al guardar, desactivar o reactivar un servicio o un producto, o al subir su foto
+ * (RF-26, RF-27). Aclara que nada cambió: la pantalla solo muestra lo que la base confirmó
+ * (RN-12, RN-14).
+ */
+export const mensajeDeGestion = (error: unknown): string => {
+  switch (clasificarError(error)) {
+    case 'sin-conexion':
+      return 'No hay conexión. No se guardó nada; inténtalo de nuevo cuando tengas internet.';
+    case 'configuracion':
+      return mensajeDeError(error);
+    default: {
+      const estado = isAxiosError(error) ? error.response?.status : undefined;
+      const c = cuerpo(error);
+      const mensaje = c?.message ?? '';
+      if (estado === 413 || /exceeded the maximum allowed size/i.test(mensaje)) {
+        return 'La foto supera el tamaño máximo. No se guardó nada; elige otra.';
+      }
+      if (estado === 415 || /mime type/i.test(mensaje)) {
+        return 'Solo se aceptan fotos JPG o PNG. No se guardó nada; elige otra.';
+      }
+      if (c?.code === '42501' || estado === 403) return 'Solo el administrador puede cambiar el catálogo.';
+      if (c?.code === '23514') return 'Algún dato no es válido. Revisa el formulario.';
+      // La función guardar_servicio todavía no existe en la base (migración sin aplicar).
+      if (c?.code === 'PGRST202') return 'La base aún no tiene la función para guardar servicios.';
+      const regla = textoDeRegla(error);
+      if (regla) return regla;
+      if (error instanceof Error && error.message.startsWith('No encontramos')) return error.message;
+      return 'No pudimos guardar el cambio. Nada cambió; inténtalo de nuevo.';
+    }
+  }
+};

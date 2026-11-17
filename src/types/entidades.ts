@@ -36,6 +36,39 @@ export interface Producto {
   categoria: CategoriaProducto | null;
 }
 
+/** Servicio en la gestión del administrador (RF-26): incluye los desactivados. */
+export interface ServicioGestion extends Servicio {
+  activo: boolean;
+  /** Quién lo presta (profesional_servicios), por nombre. */
+  profesionales: { id: string; nombre: string; activo: boolean }[];
+}
+
+/** Datos ya validados del formulario de servicio (RF-26). */
+export interface ServicioFormulario {
+  nombre: string;
+  descripcion: string;
+  duracionMin: number;
+  precio: number;
+  esAdicional: boolean;
+  /** Ids de los profesionales que lo prestan (al menos uno activo). */
+  profesionales: string[];
+}
+
+/** Producto en la gestión del administrador (RF-27): incluye los desactivados. */
+export interface ProductoGestion extends Producto {
+  activo: boolean;
+}
+
+/** Datos ya validados del formulario de producto (RF-27). */
+export interface ProductoFormulario {
+  nombre: string;
+  descripcion: string;
+  categoria: CategoriaProducto;
+  precio: number;
+  /** URL pública de la foto en el bucket "fotos", o null para la imagen de reemplazo. */
+  foto: string | null;
+}
+
 /** Estados de la cita (D-15). */
 export type EstadoCita =
   | 'confirmada'

@@ -35,6 +35,31 @@ export interface ProductoRespuesta {
   activo: boolean;
 }
 
+/** Servicio visto por el administrador (RF-26): activo o no, con quién lo presta. */
+export interface ServicioGestionRespuesta extends ServicioRespuesta {
+  profesionales: { id: string; nombre: string; activo: boolean }[] | null;
+}
+
+/** Parámetros de la función guardar_servicio (RF-26, D-43). p_id null = crear. */
+export interface GuardarServicioCuerpo {
+  p_id: string | null;
+  p_nombre: string;
+  p_descripcion: string | null;
+  p_duracion_min: number;
+  p_precio: number;
+  p_es_adicional: boolean;
+  p_profesionales: string[];
+}
+
+/** Cuerpo para crear o editar un producto (RF-27): lo que se escribe en la tabla productos. */
+export interface ProductoCuerpo {
+  nombre: string;
+  descripcion: string | null;
+  categoria: 'cabello' | 'barba';
+  precio: number;
+  foto_url: string | null;
+}
+
 /** Cita de la tabla citas (D-23) con profesional, servicios y comprobantes embebidos. */
 export interface CitaRespuesta {
   id: string;

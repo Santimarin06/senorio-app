@@ -2,7 +2,8 @@
 // Mismo patrón que usePermisoUbicacion: revisa el permiso de cámara al montar y cada vez que
 // la app vuelve a primer plano (por ejemplo, al regresar de Ajustes).
 //
-// Entradas: ninguna.
+// Entradas: opciones de la imagen (por defecto, las del comprobante; la foto de un producto
+// pasa las de FOTOS y pide recorte cuadrado, RF-27).
 // Estado: permiso de cámara, imagen elegida, error de validación y si está leyendo el archivo.
 // Resultado: { permisoCamara, imagen, error, leyendo, tomarFoto, elegirDeGaleria, abrirAjustes, limpiar }.
 //
@@ -24,14 +25,26 @@ const aEstado = (r: ImagePicker.CameraPermissionResponse): EstadoPermisoCamara =
   return r.status === 'undetermined' ? 'sin-preguntar' : 'denegado';
 };
 
-const OPCIONES: ImagePicker.ImagePickerOptions = {
-  mediaTypes: ['images'],
-  quality: COMPROBANTE.calidad,
-  // Los bytes llegan en base64: leer asset.uri con fetch falla en Expo Go (ver bytesDeBase64).
-  base64: true,
+export interface OpcionesImagen {
+  calidad: number;
+  tamanoMaximoBytes: number;
+  /** Abre el editor del sistema para recortar la imagen cuadrada. */
+  cuadrada?: boolean;
+}
+
+const COMPROBANTE_OPCIONES: OpcionesImagen = {
+  calidad: COMPROBANTE.calidad,
+  tamanoMaximoBytes: COMPROBANTE.tamanoMaximoBytes,
 };
 
-export const useElegirImagen = () => {
+export const useElegirImagen = (opciones: OpcionesImagen = COMPROBANTE_OPCIONES) => {
+  const opcionesPicker: ImagePicker.ImagePickerOptions = {
+    mediaTypes: ['images'],
+    quality: opciones.calidad,
+    // Los bytes llegan en base64: leer asset.uri con fetch falla en Expo Go (ver bytesDeBase64).
+    base64: true,
+    ...(opciones.cuadrada ? { allowsEditing: true, aspect: [1, 1] as [number, number] } : {}),
+  };
   const [permisoCamara, setPermisoCamara] = useState<EstadoPermisoCamara>('sin-preguntar');
   const [imagen, setImagen] = useState<ImagenComprobante | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +80,7 @@ export const useElegirImagen = () => {
         setError('No pudimos leer la imagen. Elige otra.');
         return;
       }
-      const validacion = validarArchivoComprobante(bytes);
+      const validacion = validarArchivoComprobante(bytes, opciones.tamanoMaximoBytes);
       if (!validacion.ok) {
         setImagen(null);
         setError(validacion.error);
@@ -76,7 +89,7 @@ export const useElegirImagen = () => {
       const extension = validacion.mime === 'image/png' ? 'png' : 'jpg';
       setImagen({
         uri: asset.uri,
-        nombre: asset.fileName ?? `comprobante.${extension}`,
+        nombre: asset.fileName ?? `imagen.${extension}`,
         bytes: bytes.buffer,
         mime: validacion.mime,
         tamano: bytes.byteLength,
@@ -97,7 +110,7 @@ export const useElegirImagen = () => {
     setPermisoCamara(aEstado(permiso));
     if (!permiso.granted) return;
     try {
-      await procesar(await ImagePicker.launchCameraAsync(OPCIONES));
+      await procesar(await ImagePicker.launchCameraAsync(opcionesPicker));
     } catch {
       setError('No pudimos abrir la cámara. Prueba con la galería.');
     }
@@ -105,7 +118,7 @@ export const useElegirImagen = () => {
 
   const elegirDeGaleria = async () => {
     try {
-      await procesar(await ImagePicker.launchImageLibraryAsync(OPCIONES));
+      await procesar(await ImagePicker.launchImageLibraryAsync(opcionesPicker));
     } catch {
       setError('No pudimos abrir la galería. Inténtalo de nuevo.');
     }

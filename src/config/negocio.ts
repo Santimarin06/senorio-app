@@ -93,6 +93,27 @@ export const COMPROBANTE = {
   urlFirmadaSegundos: 10 * 60,
 } as const;
 
+/**
+ * Fotos de productos (RF-27, D-43): bucket público "fotos", lo mismo que exige su migración.
+ * La foto se recorta cuadrada al elegirla: así pesa menos y se ve igual en la tarjeta.
+ */
+export const FOTOS = {
+  bucket: 'fotos',
+  carpetaProductos: 'productos',
+  tamanoMaximoBytes: 5 * 1024 * 1024,
+  calidad: 0.7,
+} as const;
+
+/** Formularios de gestión del catálogo (RF-26, RF-27, D-43): límites de los campos. */
+export const GESTION = {
+  nombreMaximo: 60,
+  descripcionMaxima: 200,
+  /** Una cita no pasa de una jornada: un servicio de más de 8 horas es un error de tecleo. */
+  duracionMaximaMin: 480,
+  /** Tope de cordura para el precio en pesos (evita un cero de más). */
+  precioMaximo: 5_000_000,
+} as const;
+
 /** Revisión del administrador (RF-25): cuántas multas resueltas se muestran en el historial. */
 export const REVISION = {
   historialMultas: 20,

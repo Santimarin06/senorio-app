@@ -81,16 +81,22 @@ export function formatoTamano(bytes: number): string {
 
 export type ValidacionArchivo = { ok: true; mime: TipoImagen } | { ok: false; error: string };
 
-/** RF-13: solo JPG o PNG de hasta 5 MB. Se valida antes de subir nada. */
-export function validarArchivoComprobante(bytes: Uint8Array): ValidacionArchivo {
+/**
+ * RF-13: solo JPG o PNG de hasta 5 MB. Se valida antes de subir nada. La foto de un producto
+ * (RF-27) usa la misma validación con su propio tamaño máximo.
+ */
+export function validarArchivoComprobante(
+  bytes: Uint8Array,
+  maximoBytes: number = COMPROBANTE.tamanoMaximoBytes,
+): ValidacionArchivo {
   if (bytes.length === 0) return { ok: false, error: 'La imagen está vacía. Elige otra.' };
   const mime = tipoDeImagen(bytes);
   if (!mime) {
     return { ok: false, error: 'Solo se aceptan imágenes JPG o PNG. Elige otra imagen.' };
   }
-  if (bytes.length > COMPROBANTE.tamanoMaximoBytes) {
+  if (bytes.length > maximoBytes) {
     const pesa = formatoTamano(bytes.length);
-    const maximo = formatoTamano(COMPROBANTE.tamanoMaximoBytes);
+    const maximo = formatoTamano(maximoBytes);
     // Si al redondear se ve igual al máximo, decir "pesa 5 MB; el máximo es 5 MB" confunde.
     return {
       ok: false,
