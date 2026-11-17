@@ -3,12 +3,13 @@
 // reservadas fuera del nuevo horario, avisa y pide confirmar, pero no las cancela.
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 
 import Boton from '@/components/Boton';
 import CampoTexto from '@/components/CampoTexto';
 import Chip from '@/components/Chip';
 import EstadoPantalla from '@/components/EstadoPantalla';
+import FormularioConTeclado from '@/components/FormularioConTeclado';
 import { NavegadorFecha } from '@/components/PartesAgenda';
 import { HORARIO } from '@/config/negocio';
 import { useAgenda } from '@/hooks/useAgenda';
@@ -190,7 +191,7 @@ function FormularioDia({
   };
 
   return (
-    <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+    <FormularioConTeclado>
       <Text className="font-texto text-base text-primary">
         {tipoDia} · Horario normal: {textoVentana(normal)}
       </Text>
@@ -276,6 +277,6 @@ function FormularioDia({
           Quitar la excepción
         </Boton>
       ) : null}
-    </ScrollView>
+    </FormularioConTeclado>
   );
 }
