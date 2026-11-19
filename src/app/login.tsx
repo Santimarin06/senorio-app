@@ -1,4 +1,6 @@
 // Inicio de sesión (RF-01) con Supabase Auth. "Olvidé mi contraseña" no se muestra (D-14).
+// Estructura del mockup: encabezado, título, logo (D-52), nombre del local y formulario.
+import { Image } from 'expo-image';
 import { Link, Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
@@ -48,13 +50,37 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-fondo">
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-          <Text className="font-titulo text-3xl text-primary">{NEGOCIO.nombre}</Text>
-          <Text className="mb-8 font-texto text-lg text-secondary">El cuidado tiene su lugar</Text>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24 }}>
+          <Text className="font-texto text-xs uppercase tracking-widest text-secondary">
+            {NEGOCIO.nombre}
+          </Text>
+          <Text className="mt-2 font-titulo text-3xl text-primary">El cuidado tiene su lugar.</Text>
+
+          <View className="my-6 items-center rounded-2xl bg-borde/40 py-6">
+            <Image
+              source={require('../../assets/images/logo.png')}
+              style={{ width: 190, height: 190 }}
+              contentFit="contain"
+              accessibilityLabel={`Logo de ${NEGOCIO.nombre}`}
+            />
+          </View>
+
+          <View className="flex-row items-end justify-between border-b border-borde pb-3">
+            <Text className="font-titulo text-2xl text-primary">{NEGOCIO.nombre}</Text>
+            <Text className="mb-1 font-texto text-xs uppercase tracking-widest text-secondary">
+              Barbería
+            </Text>
+          </View>
+          <Text className="mb-6 mt-3 font-texto text-base text-secondary">
+            Tu tiempo, tu estilo. Entra para reservar con quienes ya conoces.
+          </Text>
 
           <CampoTexto
-            etiqueta="Correo"
+            etiqueta="Correo electrónico"
             value={datos.correo}
             onChangeText={cambiar('correo')}
             error={errores.correo}
@@ -87,9 +113,12 @@ export default function LoginScreen() {
 
           <Link href="/registro" asChild>
             <Boton variante="texto" className="mt-2">
-              Crear cuenta
+              ¿Primera visita? Crear una cuenta
             </Boton>
           </Link>
+          <Text className="mt-1 text-center font-texto text-xs text-secondary">
+            Tu acceso te lleva a tu espacio según tu rol.
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
