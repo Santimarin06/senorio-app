@@ -42,8 +42,7 @@ export default function ListaProductos() {
   };
 
   if (isPending) return <EstadoPantalla tipo="carga" mensaje="Cargando productos…" />;
-  if (isError)
-    return <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />;
+  if (isError) return <EstadoPantalla tipo="error" error={error} onReintentar={refetch} />;
   if (data.length === 0)
     return <EstadoPantalla tipo="vacio" mensaje="Todavía no hay productos en el catálogo." />;
 
@@ -97,8 +96,12 @@ export default function ListaProductos() {
               icono="bag-outline"
             >
               {enBolsa ? (
-                <Boton variante="borde" onPress={() => router.push('/cotizacion')}>
-                  En la bolsa · Ver
+                <Boton
+                  variante="borde"
+                  onPress={() => agregar(item)}
+                  accessibilityLabel={`Agregar una unidad de ${item.nombre}`}
+                >
+                  +1 unidad
                 </Boton>
               ) : (
                 <Boton onPress={() => agregar(item)} accessibilityLabel={`Agregar ${item.nombre}`}>

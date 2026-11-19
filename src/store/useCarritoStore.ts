@@ -21,11 +21,18 @@ export const useCarritoStore = create<CarritoState>()((set) => ({
   items: [],
 
   agregar: (producto) =>
-    set((estado) =>
-      estado.items.some((i) => i.producto.id === producto.id)
-        ? estado
-        : { items: [...estado.items, { producto, cantidad: 1 }] },
-    ),
+    set((estado) => {
+      const existe = estado.items.some((i) => i.producto.id === producto.id);
+      if (!existe) {
+        return { items: [...estado.items, { producto, cantidad: 1 }] };
+      }
+
+      return {
+        items: estado.items.map((i) =>
+          i.producto.id === producto.id ? { ...i, cantidad: limitarCantidad(i.cantidad + 1) } : i,
+        ),
+      };
+    }),
 
   cambiarCantidad: (productoId, cantidad) =>
     set((estado) => ({
@@ -35,7 +42,9 @@ export const useCarritoStore = create<CarritoState>()((set) => ({
     })),
 
   quitar: (productoId) =>
-    set((estado) => ({ items: estado.items.filter((i) => i.producto.id !== productoId) })),
+    set((estado) => ({
+      items: estado.items.filter((i) => i.producto.id !== productoId),
+    })),
 
   vaciar: () => set({ items: [] }),
 }));
