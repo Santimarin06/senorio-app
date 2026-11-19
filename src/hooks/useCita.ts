@@ -37,12 +37,26 @@ export const useMisCitas = () => {
   });
 };
 
+// Demostración del error en el Resumen: con true (solo en desarrollo) las 3 primeras
+// consultas fallan (la primera y los 2 reintentos automáticos) y el botón Reintentar ya
+// obtiene la respuesta real. En la entrega debe quedar en false.
+const SIMULAR_FALLO_MULTA = false;
+let fallosSimulados = 0;
+
+const consultarMulta = async (clienteId: string): Promise<number> => {
+  if (__DEV__ && SIMULAR_FALLO_MULTA && fallosSimulados < 3) {
+    fallosSimulados += 1;
+    throw new Error('Fallo simulado al consultar la multa');
+  }
+  return getMultaPendienteTotal(clienteId);
+};
+
 /** RN-07: multa pendiente del cliente, para avisar antes de confirmar. */
 export const useMultaPendiente = () => {
   const clienteId = useSesionStore((s) => s.usuario?.id ?? '');
   return useQuery({
     queryKey: ['citas', 'multa-pendiente', clienteId],
-    queryFn: () => getMultaPendienteTotal(clienteId),
+    queryFn: () => consultarMulta(clienteId),
     enabled: clienteId !== '',
     staleTime: unMinuto,
   });

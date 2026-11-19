@@ -40,8 +40,10 @@ export default function ResumenScreen() {
   }
 
   const total = totalSeleccion(servicios);
+  // Si la consulta falló no sabemos si hay multa: no se toma como cero, se bloquea.
+  const errorMulta = multa.isError;
   const multaPendiente = multa.data ?? 0;
-  const bloqueadoPorMulta = !puedeReservar(multaPendiente);
+  const bloqueadoPorMulta = !errorMulta && !puedeReservar(multaPendiente);
 
   const confirmar = () => {
     reservar.mutate(
@@ -99,6 +101,23 @@ export default function ResumenScreen() {
         </Text>
       </Pressable>
 
+      {/* RN-07 y RN-14: sin verificar la multa no se confirma. La selección se conserva. */}
+      {errorMulta ? (
+        <View className="mb-4 rounded-lg border border-peligro p-3">
+          <Text className="font-texto text-sm text-peligro">
+            No se pudo verificar si tienes multas. Revisa tu conexión e inténtalo de nuevo.
+          </Text>
+          <Boton
+            variante="borde"
+            className="mt-3"
+            cargando={multa.isFetching}
+            onPress={() => multa.refetch()}
+          >
+            Reintentar
+          </Boton>
+        </View>
+      ) : null}
+
       {bloqueadoPorMulta ? (
         <View className="mb-4 rounded-lg border border-peligro p-3">
           <Text className="font-texto text-sm text-peligro">
@@ -123,7 +142,7 @@ export default function ResumenScreen() {
           <Boton
             onPress={confirmar}
             cargando={reservar.isPending}
-            disabled={!acepta || bloqueadoPorMulta || multa.isPending}
+            disabled={!acepta || errorMulta || bloqueadoPorMulta || multa.isPending}
           >
             {reservar.isError && esSinConexion(reservar.error) ? 'Reintentar al conectarte' : 'Confirmar cita'}
           </Boton>
