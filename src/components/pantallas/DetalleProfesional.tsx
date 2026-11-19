@@ -60,6 +60,7 @@ export default function DetalleProfesional({ id }: { id: string }) {
           titulo={profesional.nombre}
           subtitulo={profesional.cargo}
           imagen={profesional.foto}
+          imagenGrande
         />
 
         <Text className="mb-2 mt-2 font-texto text-lg text-primary">

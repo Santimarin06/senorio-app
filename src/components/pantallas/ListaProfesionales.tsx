@@ -52,6 +52,7 @@ export default function ListaProfesionales() {
             titulo={item.nombre}
             subtitulo={item.cargo}
             imagen={item.foto}
+            imagenGrande
             onPress={() => abrir(item)}
           />
         )}
